@@ -82,7 +82,7 @@ with open('data.json', mode='r', encoding='utf-8') as json_file:
 
 Any object and attack step in the model can be set as a high value asset but it requires knowledge about the underlying model and concepts which can be fetched by using `client.get_metadata()`. Use `model.set_high_value_assets()` with the `high_value_assets` parameter and set your high value assets by specifying the object type `metaconcept`, object identifier `id` and target `attackstep` as a list of dicts:
 ```python
-[
+high_value_assets = [
     {
         "metaconcept": "EC2Instance",
         "attackstep": "HighPrivilegeAccess",
@@ -99,6 +99,9 @@ Any object and attack step in the model can be set as a high value asset but it 
         "id": {"type": "name", "value": "VanguardTable"}
     }
 ]
+
+# Set high value assets in securiCAD model
+model.set_high_value_assets(high_value_assets=high_value_assets)
 ```
 `id` is used to match objects in the model with the high value assets. The supported `type` are currently `name`, `arn` and `tag`. Omitting the `id` parameters will set all assets of that type as a high value asset. Omitting `consequence` will automatically set it to `10`.
 
