@@ -18,9 +18,14 @@ from collections import defaultdict
 class Model:
     def __init__(self, model):
         self.model = model
+        self.id = model["mid"]
 
-    def disable_attackstep(self, oid, obj):
-        pass
+    def disable_attackstep(self, metaconcept, attackstep, name=None):
+        for oid, obj in self.model["objects"].items():
+            if obj["metaconcept"] == metaconcept:
+                if name and obj["name"] != name:
+                    continue
+                self.set_evidence(oid, attackstep, distribution="Infinity")
 
     def set_high_value_assets(self, **kwargs):
         hv_list = kwargs.get("high_value_assets", [])
@@ -55,13 +60,23 @@ class Model:
         consequence = 10
         if hv_asset.get("consequence") is not None:
             consequence = hv_asset.get("consequence")
-        self.model["objects"][oid]["attacksteps"].append(self.get_evidence(attackstep, consequence))
+        self.set_evidence(oid, attackstep, consequence=consequence)
 
-    def get_evidence(self, name, consequence, distribution=None, lowercost=None, uppercost=None):
-        return {
-            "name": name,
-            "distribution": distribution,
-            "lowercost": lowercost,
-            "uppercost": uppercost,
-            "consequence": consequence,
-        }
+    def set_evidence(self, oid, attackstep, consequence=None, distribution=None):
+        for step in self.model["objects"][oid]["attacksteps"]:
+            if step["name"] == attackstep:
+                if consequence:
+                    step["consequence"] = consequence
+                if distribution:
+                    step["distribution"] = distribution
+                break
+        else:
+            self.model["objects"][oid]["attacksteps"].append(
+                {
+                    "name": attackstep,
+                    "distribution": distribution,
+                    "lowercost": None,
+                    "uppercost": None,
+                    "consequence": consequence
+                }
+            )

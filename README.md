@@ -33,11 +33,14 @@ _, data = aws.import_cli(region, accesskey, secretkey)
 username = "username"
 password = "password"
 
+# (Optional) Organization of user
+org = "My organization"
+
 # securiCAD Enterprise URL
 url = "https://xx.xx.xxx.x"
 
 # Create an authenticated enterprise client
-client = enterprise.client(username=username, password=password, url=url)
+client = enterprise.client(username=username, password=password, url=url, org=org)
 
 # Get project id of project where the model will be added
 project_id = client.get_project(name="My project")
@@ -104,6 +107,21 @@ high_value_assets = [
 model.set_high_value_assets(high_value_assets=high_value_assets)
 ```
 `id` is used to match objects in the model with the high value assets. The supported `type` are currently `name`, `arn` and `tag`. Omitting the `id` parameters will set all assets of that type as a high value asset. Omitting `consequence` will automatically set it to `10`.
+
+## Disable attacksteps
+To configure the attack simulation and the capabilities of the attacker use `Model.disable_attackstep(metaconcept, attackstep, name)`:
+```python
+
+# Disable ReadObject on a specific S3Bucket
+model.disable_attackstep("S3Bucket", "ReadObject", "my-bucket")
+
+# Disable DeleteObject on all S3Buckets
+model.disable_attackstep("S3Bucket", "ReadObject")
+
+# Save changes to model in project
+client.save_model(project_id, model)
+
+```
 
 ## Examples
 Below are a few examples of how you can use `boto3` to automatically collect name or ids for your high value assets.

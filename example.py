@@ -17,11 +17,14 @@ _, data = aws.import_cli(region, accesskey, secretkey)
 username = "username"
 password = "password"
 
+# (Optional) Organization of user
+org = "My organization"
+
 # securiCAD Enterprise URL
 url = "https://xx.xx.xxx.x"
 
 # Create an authenticated enterprise client
-client = enterprise.client(username=username, password=password, url=url)
+client = enterprise.client(username=username, password=password, url=url, org=org)
 
 # Get project id of project where the model will be added
 project_id = client.get_project(name="My project")

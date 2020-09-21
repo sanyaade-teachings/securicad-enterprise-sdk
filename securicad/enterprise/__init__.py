@@ -13,12 +13,10 @@
 # limitations under the License.
 
 
-from enum import Enum
-
 from securicad.enterprise.client import Client
 
 __version__ = "0.0.1"
 __author__ = "Foreseeti AB"
 
-def client(username, password, url):
-    return Client(username, password, url)
+def client(username, password, url, org=None):
+    return Client(username, password, url, org)

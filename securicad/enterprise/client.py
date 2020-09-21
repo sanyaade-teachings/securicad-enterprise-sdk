@@ -26,24 +26,27 @@ import urllib3
 urllib3.disable_warnings()
 
 from .model import Model
+import securicad.enterprise
 
 def serialize_datetime(o):
     if isinstance(o, datetime):
         return o.__str__()
 
 class Client:
-    def __init__(self, username, password, url):
+    def __init__(self, url, username, password, org):
         self.base_url = f"{url}/api/v1"
 
-        self.token = self.authenticate(username, password)
+        self.token = self.authenticate(username, password, org)
         self.headers = {
-            "User-Agent": "Enterprise SDK",
+            "User-Agent": f"Enterprise SDK {securicad.enterprise.__version__}",
             "Authorization": self.token,
         }
 
-    def authenticate(self, username, password):
+    def authenticate(self, username, password, org):
         url = f"{self.base_url}/auth/login"
         data = {"username": username, "password": password}
+        if org:
+            data["organization"] = org
         res = requests.post(url, json=data, verify=False)
         res.raise_for_status()
         if res.status_code == 200:
@@ -51,7 +54,7 @@ class Client:
             jwt_token = f"JWT {access_token}"
             return jwt_token
 
-    def encode_data(self, data):
+    def __encode_data(self, data):
         if isinstance(data, dict):
             content = json.dumps(data, default=serialize_datetime).encode("utf-8")
         elif isinstance(data, bytes):
@@ -59,20 +62,20 @@ class Client:
         else:
             raise ValueError(f"a bytes-like object or dict is required, not {type(data)}")
         return content
-    
+
     def add_model(self, pid, json_data, name):
-        model_id = self._add_model(pid, json_data, name)
+        model_id = self.__add_model(pid, json_data, name)
         model = self.get_model(pid, model_id)
         return model_id, model
 
-    def _add_model(self, pid, json_data, name):
+    def __add_model(self, pid, json_data, name):
         url = f"{self.base_url}/models"
 
-        model_content = self.encode_data(json_data)
+        model_content = self.__encode_data(json_data)
         model_base64d = base64.b64encode(model_content).decode("utf-8")
 
         data = {
-            "pid": pid, 
+            "pid": pid,
             "files": [[{"file": model_base64d, "filename": f"{name}.json", "type": "aws", "tags": []}]]
         }
 
@@ -107,11 +110,11 @@ class Client:
 
     def save_model(self, pid, model):
         mid = model.model["mid"]
-        self.lock_model(mid)
-        self._save_model(pid, model)
-        self.release_model(mid)
-        
-    def _save_model(self, pid, model):
+        self.__lock_model(mid)
+        self.__save_model(pid, model)
+        self.__release_model(mid)
+
+    def __save_model(self, pid, model):
         url = f"{self.base_url}/savemodel"
 
         data = {"pid": pid, "model": model.model}
@@ -130,7 +133,7 @@ class Client:
 
         return res.json()["response"]
 
-    def lock_model(self, mid):
+    def __lock_model(self, mid):
         url = f"{self.base_url}/model/lock"
 
         data = {"mid": mid,}
@@ -138,8 +141,8 @@ class Client:
         res.raise_for_status()
 
         return res.json()["response"]
-    
-    def release_model(self, mid):
+
+    def __release_model(self, mid):
         url = f"{self.base_url}/model/release"
 
         data = {"mid": mid}
@@ -149,11 +152,11 @@ class Client:
         return res.json()["response"]
 
     def start_simulation(self, pid, mid, name):
-        scenario_id = self._start_scenario(pid, mid, name, "")
-        simulation_id = self._start_simulation(pid, scenario_id, name)
+        scenario_id = self.__start_scenario(pid, mid, name, "")
+        simulation_id = self.__start_simulation(pid, scenario_id, name)
         return simulation_id
 
-    def _start_scenario(self, pid, mid, name, description):
+    def __start_scenario(self, pid, mid, name, description):
         url = f"{self.base_url}/scenario"
 
         data = {
@@ -167,7 +170,7 @@ class Client:
 
         return res.json()["response"]["tid"]
 
-    def _start_simulation(self, pid, tid, name):
+    def __start_simulation(self, pid, tid, name):
         url = f"{self.base_url}/simulation"
 
         data = {
@@ -184,7 +187,7 @@ class Client:
 
     def get_results(self, pid, tid, simid):
         self.poll_results(pid, tid, simid)
-        result = self._get_results(pid, simid)
+        result = self.__get_results(pid, simid)
         return result
 
     def poll_results(self, pid, tid, simid):
@@ -202,9 +205,9 @@ class Client:
                     return
             else:
                 raise ValueError(f"simulation id '{simid}' does not exist")
-            time.sleep(3)
+            time.sleep(1)
 
-    def _get_results(self, pid, simid):
+    def __get_results(self, pid, simid):
         url = f"{self.base_url}/simulation/data"
 
         data = {"pid": pid, "simid": simid}
@@ -212,7 +215,7 @@ class Client:
         res.raise_for_status()
 
         return res.json()["response"]
-    
+
     def get_metadata(self):
         url = f"{self.base_url}/metadata"
         res = requests.get(url, headers=self.headers, verify=False)
@@ -232,4 +235,3 @@ class Client:
                 "attacksteps": attacksteps
             })
         return sorted(metalist, key=lambda k: k["name"])
-
