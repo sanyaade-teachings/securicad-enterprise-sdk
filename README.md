@@ -3,6 +3,9 @@ A Python SDK for [foreseeti's securiCAD Enterprise](https://foreseeti.com/securi
 
 ## Getting started
 
+### Required python modules
+`requests`, `boto3`
+
 ### Download and setup the SDK
 ```shell
 git clone https://github.com/foreseeti/securicad-enterprise-sdk.git
