@@ -19,4 +19,4 @@ __version__ = "0.0.1"
 __author__ = "Foreseeti AB"
 
 def client(url, username, password, org=None):
-    return Client(username, password, url, org)
+    return Client(url, username, password, org)
