@@ -1,14 +1,12 @@
-import json
-import sys
 import time
-from securicad import enterprise
 
 import aws_import_cli as aws
+from securicad import enterprise
 
 # AWS credentials
 accesskey = "AWS ACCESS KEY"
 secretkey = "AWS SECRET KEY"
-region = "REGION" # e.g., us-east-1
+region = "REGION"  # e.g., us-east-1
 
 # Fetch AWS data
 _, data = aws.import_cli(region, accesskey, secretkey)
@@ -21,11 +19,15 @@ password = "password"
 # If you are using the system admin account set org = None
 org = "My organization"
 
+# (Optional) CA certificate of securiCAD Enterprise
+# If you don't want to verify the certificate set cacert = None
+cacert = "/path/to/cacert.pem"
+
 # securiCAD Enterprise URL
 url = "https://xx.xx.xxx.x"
 
 # Create an authenticated enterprise client
-client = enterprise.client(url=url, username=username, password=password, org=org)
+client = enterprise.client(url=url, username=username, password=password, org=org, cacert=cacert)
 
 # Get project id of project where the model will be added
 project_id = client.get_project(name="My project")
@@ -40,7 +42,7 @@ high_value_assets = [
     {
         "metaconcept": "S3Bucket",
         "attackstep": "ReadObject",
-        "consequence": 7
+        "consequence": 7,
     }
 ]
 

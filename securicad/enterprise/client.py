@@ -12,42 +12,43 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import re
-import sys
+import base64
 import json
 import time
-import math
-import base64
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import requests
-import urllib3
 
-urllib3.disable_warnings()
-
-from .model import Model
 import securicad.enterprise
+from securicad.enterprise.model import Model
+
 
 def serialize_datetime(o):
     if isinstance(o, datetime):
         return o.__str__()
 
+
 class Client:
-    def __init__(self, url, username, password, org):
+    def __init__(self, url, username, password, org, cacert):
         self.base_url = f"{url}/api/v1"
 
-        self.token = self.authenticate(username, password, org)
-        self.headers = {
-            "User-Agent": f"Enterprise SDK {securicad.enterprise.__version__}",
-            "Authorization": self.token,
-        }
+        self.session = requests.Session()
+        if cacert:
+            self.session.verify = cacert
+        else:
+            self.session.verify = False
+            requests.packages.urllib3.disable_warnings(
+                requests.packages.urllib3.exceptions.InsecureRequestWarning
+            )
+        self.session.headers["User-Agent"] = f"Enterprise SDK {securicad.enterprise.__version__}"
+        self.session.headers["Authorization"] = self.__authenticate(username, password, org)
 
-    def authenticate(self, username, password, org):
+    def __authenticate(self, username, password, org):
         url = f"{self.base_url}/auth/login"
         data = {"username": username, "password": password}
         if org:
             data["organization"] = org
-        res = requests.post(url, json=data, verify=False)
+        res = self.session.post(url, json=data)
         res.raise_for_status()
         if res.status_code == 200:
             access_token = res.json()["response"]["access_token"]
@@ -76,23 +77,32 @@ class Client:
 
         data = {
             "pid": pid,
-            "files": [[{"file": model_base64d, "filename": f"{name}.json", "type": "aws", "tags": []}]]
+            "files": [
+                [
+                    {
+                        "file": model_base64d,
+                        "filename": f"{name}.json",
+                        "type": "aws",
+                        "tags": [],
+                    }
+                ]
+            ],
         }
 
-        res = requests.put(url, headers=self.headers, json=data, verify=False)
+        res = self.session.put(url, json=data)
         res.raise_for_status()
         mid = res.json()["response"][0]["mid"]
         while True:
-            res = requests.post(url, headers=self.headers, json={"pid": pid}, verify=False)
+            res = self.session.post(url, json={"pid": pid})
             res.raise_for_status()
             for model in res.json()["response"]:
                 if mid == model["mid"] and model["valid"] > 0:
                     return mid
-            time.sleep(3)
+            time.sleep(1)
 
     def get_project(self, name):
         url = f"{self.base_url}/projects"
-        res = requests.post(url, headers=self.headers, verify=False)
+        res = self.session.post(url)
         res.raise_for_status()
         for project in res.json()["response"]:
             if project["name"] == name:
@@ -103,7 +113,7 @@ class Client:
         url = f"{self.base_url}/model/json"
 
         data = {"pid": pid, "mids": [mid]}
-        res = requests.post(url, headers=self.headers, json=data, verify=False)
+        res = self.session.post(url, json=data)
         res.raise_for_status()
 
         return Model(res.json()["response"])
@@ -118,7 +128,7 @@ class Client:
         url = f"{self.base_url}/savemodel"
 
         data = {"pid": pid, "model": model.model}
-        res = requests.post(url, headers=self.headers, json=data, verify=False)
+        res = self.session.post(url, json=data)
         res.raise_for_status()
 
         return res.json()["response"]
@@ -126,18 +136,22 @@ class Client:
     def save_model_as(self, pid, model, name):
         url = f"{self.base_url}/savemodelas"
 
-        model.model["name"] = name
+        model.model["name"] = f"{name}.sCAD"
         data = {"pid": pid, "model": model.model}
-        res = requests.post(url, headers=self.headers, json=data, verify=False)
+        res = self.session.post(url, json=data)
         res.raise_for_status()
+        model.model["mid"] = res.json()["response"]["mid"]
+        model.id = model.model["mid"]
 
-        return res.json()["response"]
+        return model.id
 
     def __lock_model(self, mid):
         url = f"{self.base_url}/model/lock"
 
-        data = {"mid": mid,}
-        res = requests.post(url, headers=self.headers, json=data, verify=False)
+        data = {
+            "mid": mid,
+        }
+        res = self.session.post(url, json=data)
         res.raise_for_status()
 
         return res.json()["response"]
@@ -146,7 +160,7 @@ class Client:
         url = f"{self.base_url}/model/release"
 
         data = {"mid": mid}
-        res = requests.post(url, headers=self.headers, json=data, verify=False)
+        res = self.session.post(url, json=data)
         res.raise_for_status()
 
         return res.json()["response"]
@@ -163,9 +177,9 @@ class Client:
             "pid": pid,
             "mid": mid,
             "name": name,
-            "description": description
+            "description": description,
         }
-        res = requests.put(url, headers=self.headers, json=data, verify=False)
+        res = self.session.put(url, json=data)
         res.raise_for_status()
 
         return res.json()["response"]["tid"]
@@ -177,26 +191,26 @@ class Client:
             "pid": pid,
             "tid": tid,
             "cids": [],
-            "name": name
+            "name": name,
         }
 
-        res = requests.put(url, headers=self.headers, json=data, verify=False)
+        res = self.session.put(url, json=data)
         res.raise_for_status()
         simid = res.json()["response"]["simid"]
         return simid, tid
 
     def get_results(self, pid, tid, simid):
-        self.poll_results(pid, tid, simid)
+        self.__poll_results(pid, tid, simid)
         result = self.__get_results(pid, simid)
         return result
 
-    def poll_results(self, pid, tid, simid):
+    def __poll_results(self, pid, tid, simid):
         url = f"{self.base_url}/scenario/data"
-        
+
         data = {"pid": pid, "tid": tid}
 
         while True:
-            res = requests.post(url, headers=self.headers, json=data, verify=False)
+            res = self.session.post(url, json=data)
             res.raise_for_status()
             resdata = res.json()["response"]
             results = resdata["results"]
@@ -211,27 +225,31 @@ class Client:
         url = f"{self.base_url}/simulation/data"
 
         data = {"pid": pid, "simid": simid}
-        res = requests.post(url, headers=self.headers, json=data, verify=False)
+        res = self.session.post(url, json=data)
         res.raise_for_status()
 
         return res.json()["response"]
 
     def get_metadata(self):
         url = f"{self.base_url}/metadata"
-        res = requests.get(url, headers=self.headers, verify=False)
+        res = self.session.get(url)
         res.raise_for_status()
         metadata = res.json()["response"]
         metalist = []
         for asset, data in metadata["assets"].items():
             attacksteps = []
             for a in data["attacksteps"]:
-                attacksteps.append({
-                    "name": a["name"],
-                    "description": a["description"]
-                })
-            metalist.append({
-                "name": asset,
-                "description": data["description"],
-                "attacksteps": attacksteps
-            })
+                attacksteps.append(
+                    {
+                        "name": a["name"],
+                        "description": a["description"],
+                    }
+                )
+            metalist.append(
+                {
+                    "name": asset,
+                    "description": data["description"],
+                    "attacksteps": attacksteps,
+                }
+            )
         return sorted(metalist, key=lambda k: k["name"])

@@ -25,7 +25,7 @@ class Model:
             if obj["metaconcept"] == metaconcept:
                 if name and obj["name"] != name:
                     continue
-                self.set_evidence(oid, attackstep, distribution="Infinity")
+                self.__set_evidence(oid, attackstep, distribution="Infinity")
 
     def set_high_value_assets(self, **kwargs):
         hv_list = kwargs.get("high_value_assets", [])
@@ -38,10 +38,10 @@ class Model:
         for oid, obj in self.model["objects"].items():
             if obj["metaconcept"] in hv_assets:
                 for hv_asset in hv_assets[obj["metaconcept"]]:
-                    if self.is_high_value_asset(obj, hv_asset):
-                        self.set_high_value_asset(oid, obj, hv_asset)
+                    if self.__is_high_value_asset(obj, hv_asset):
+                        self.__set_high_value_asset(oid, obj, hv_asset)
 
-    def is_high_value_asset(self, obj, hv_asset):
+    def __is_high_value_asset(self, obj, hv_asset):
         # Check if a model object matches any of the high value assets
         if hv_asset.get("id") is None:
             return True
@@ -55,14 +55,14 @@ class Model:
                 return True
         return False
 
-    def set_high_value_asset(self, oid, obj, hv_asset):
+    def __set_high_value_asset(self, oid, obj, hv_asset):
         attackstep = hv_asset["attackstep"]
         consequence = 10
         if hv_asset.get("consequence") is not None:
             consequence = hv_asset.get("consequence")
-        self.set_evidence(oid, attackstep, consequence=consequence)
+        self.__set_evidence(oid, attackstep, consequence=consequence)
 
-    def set_evidence(self, oid, attackstep, consequence=None, distribution=None):
+    def __set_evidence(self, oid, attackstep, consequence=None, distribution=None):
         for step in self.model["objects"][oid]["attacksteps"]:
             if step["name"] == attackstep:
                 if consequence:
@@ -77,6 +77,6 @@ class Model:
                     "distribution": distribution,
                     "lowercost": None,
                     "uppercost": None,
-                    "consequence": consequence
+                    "consequence": consequence,
                 }
             )
