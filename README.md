@@ -19,15 +19,15 @@ To use the Enterprise SDK for AWS-based environments, the SDK requires AWS crede
 ### Run your first simulation
 The following snippet runs a simulation on an AWS environment where the high value assets are all S3 Buckets and fetches the results. Please note, never store your credentials in source code, this is just an example.
 ```python
-import json
-from securicad import enterprise
+import time
 
 import aws_import_cli as aws
+from securicad import enterprise
 
 # AWS credentials
 accesskey = "AWS ACCESS KEY"
 secretkey = "AWS SECRET KEY"
-region = "REGION" # e.g., us-east-1
+region = "REGION"  # e.g., us-east-1
 
 # Fetch AWS data
 _, data = aws.import_cli(region, accesskey, secretkey)
@@ -40,11 +40,15 @@ password = "password"
 # If you are using the system admin account set org = None
 org = "My organization"
 
+# (Optional) CA certificate of securiCAD Enterprise
+# If you don't want to verify the certificate set cacert = None
+cacert = "/path/to/cacert.pem"
+
 # securiCAD Enterprise URL
 url = "https://xx.xx.xxx.x"
 
 # Create an authenticated enterprise client
-client = enterprise.client(url=url, username=username, password=password, org=org)
+client = enterprise.client(url=url, username=username, password=password, org=org, cacert=cacert)
 
 # Get project id of project where the model will be added
 project_id = client.get_project(name="My project")
@@ -59,7 +63,7 @@ high_value_assets = [
     {
         "metaconcept": "S3Bucket",
         "attackstep": "ReadObject",
-        "consequence": 7
+        "consequence": 7,
     }
 ]
 

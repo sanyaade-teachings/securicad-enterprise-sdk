@@ -18,5 +18,6 @@ from securicad.enterprise.client import Client
 __version__ = "0.0.1"
 __author__ = "Foreseeti AB"
 
-def client(url, username, password, org=None):
-    return Client(url, username, password, org)
+
+def client(url, username, password, org=None, cacert=None):
+    return Client(url, username, password, org, cacert)
