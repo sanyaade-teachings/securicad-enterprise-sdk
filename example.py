@@ -1,15 +1,19 @@
-import time
-
 import aws_import_cli as aws
 from securicad import enterprise
 
-# AWS credentials
-accesskey = "AWS ACCESS KEY"
-secretkey = "AWS SECRET KEY"
-region = "REGION"  # e.g., us-east-1
+# Create a config with credentials for the AWS data fetcher
+config = {
+    "accounts": [
+        {
+            "access_key": "AWS ACCESS KEY",
+            "secret_key": "AWS SECRET KEY",
+            "regions": ["REGION"], # e.g., us-east-1
+        },
+    ],
+}
 
 # Fetch AWS data
-_, data = aws.import_cli(region, accesskey, secretkey)
+aws_data = aws.import_cli(config=config)
 
 # securiCAD Enterprise credentials
 username = "username"
@@ -24,7 +28,7 @@ org = "My organization"
 cacert = "/path/to/cacert.pem"
 
 # securiCAD Enterprise URL
-url = "https://xx.xx.xxx.x"
+url = "https://xx.xx.xx.xx"
 
 # Create an authenticated enterprise client
 client = enterprise.client(url=url, username=username, password=password, org=org, cacert=cacert)
@@ -33,7 +37,7 @@ client = enterprise.client(url=url, username=username, password=password, org=or
 project_id = client.get_project(name="My project")
 
 # Generate securiCAD model from AWS data
-model_id, model = client.add_model(project_id, data, name="my-model")
+model = client.add_aws_model(project_id, name="my-model", cli_files=[aws_data])
 
 # securiCAD metadata with all assets and attacksteps
 metadata = client.get_metadata()
@@ -53,7 +57,7 @@ model.set_high_value_assets(high_value_assets=high_value_assets)
 client.save_model(project_id, model)
 
 # Start a new simulation in a new scenario
-sim_id, scenario_id = client.start_simulation(project_id, model_id, name="My first simulation")
+sim_id, scenario_id = client.start_simulation(project_id, model.id, name="My first simulation")
 
 # Poll for results and return them when simulation is done
 results = client.get_results(project_id, scenario_id, sim_id)
