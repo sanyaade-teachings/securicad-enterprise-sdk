@@ -1,0 +1,67 @@
+{
+  "type": "object",
+  "properties": {
+    "base_url": {
+      "type": "string"
+    },
+    "backend_url": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "admin_username": {
+      "type": "string"
+    },
+    "admin_password": {
+      "type": "string"
+    },
+    "common_password": {
+      "type": "string"
+    },
+    "aws_import_config": {
+      "type": "object",
+      "properties": {
+        "accounts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "access_key": {
+                "type": "string"
+              },
+              "secret_key": {
+                "type": "string"
+              },
+              "regions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "access_key",
+              "secret_key",
+              "regions"
+            ]
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "accounts"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "base_url",
+    "backend_url",
+    "admin_username",
+    "admin_password",
+    "common_password",
+    "aws_import_config"
+  ]
+}

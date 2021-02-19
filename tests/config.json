@@ -1,0 +1,18 @@
+{
+  "base_url": "",
+  "backend_url": null,
+  "admin_username": "",
+  "admin_password": "",
+  "common_password": "Password123",
+  "aws_import_config": {
+    "accounts": [
+      {
+        "access_key": "",
+        "secret_key": "",
+        "regions": [
+          "us-east-1"
+        ]
+      }
+    ]
+  }
+}

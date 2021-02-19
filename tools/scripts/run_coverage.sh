@@ -15,13 +15,13 @@ create_venv() {
   . "$venv_dir/bin/activate"
 }
 
-run_mypy() {
-  mypy --namespace-packages -p securicad.enterprise
+run_coverage() {
+  coverage run --branch --source securicad.enterprise -m pytest -vx
 }
 
 main() {
   create_venv
-  run_mypy
+  run_coverage
 }
 
 main
