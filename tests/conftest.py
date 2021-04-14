@@ -207,3 +207,33 @@ def awslang() -> List[Dict[str, Any]]:
     if AWSLANG is None:
         AWSLANG = get_awslang()
     return AWSLANG
+
+
+@pytest.fixture()
+def client():
+    import utils
+
+    return utils.get_client_sysadmin()
+
+
+@pytest.fixture()
+def project(data, client):
+    org = client.organizations.list_organizations()[0]
+    project = client.projects.create_project(
+        name="project", description="", organization=org
+    )
+    yield project
+    project.delete()
+
+
+@pytest.fixture()
+def model(data, project, client):
+    name = "smallAwsModel.sCAD"
+    model_path = Path(__file__).with_name(name)
+    with model_path.open(mode="rb") as reader:
+        model = client.models.upload_scad_model(
+            project, filename=name, file_io=reader, description=""
+        )
+        yield model.get_model()
+
+    model.delete()

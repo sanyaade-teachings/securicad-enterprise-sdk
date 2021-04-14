@@ -21,6 +21,7 @@ if TYPE_CHECKING:
 
     from securicad.enterprise.client import Client
     from securicad.enterprise.scenarios import Scenario
+    from securicad.enterprise.tunings import Tuning
 
 
 class Simulation:
@@ -106,11 +107,15 @@ class Simulations:
         scenario: "Scenario",
         name: Optional[str] = None,
         model: Optional["Model"] = None,
+        tunings: Optional[List["Tuning"]] = None,
     ) -> Simulation:
+        if tunings is None:
+            tunings = []
         data: Dict[str, Any] = {"pid": scenario.pid, "tid": scenario.tid}
         if name is not None:
             data["name"] = name
         if model is not None:
             data["blob"] = model.model
+        data["cids"] = [t.tuning_id for t in tunings]
         response = self.client._put("simulation", data)
         return self.get_simulation_by_simid(scenario, response["simid"])
