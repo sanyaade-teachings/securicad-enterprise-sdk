@@ -31,23 +31,18 @@ The easiest way is to create an IAM User with the required permissions and gener
 The following snippet runs a simulation on an AWS environment where the high value assets are all S3 Buckets and fetches the results.
 Please note, never store your credentials in source code, this is just an example.
 
-```python
-import securicad.enterprise.aws_import_cli as aws
-from securicad import enterprise
+To collect the AWS data, we use the [securiCAD AWS Collector](https://github.com/foreseeti/securicad-aws-collector).
 
-# Create a config with credentials for the AWS data fetcher
-config = {
-    "accounts": [
-        {
-            "access_key": "AWS ACCESS KEY",
-            "secret_key": "AWS SECRET KEY",
-            "regions": ["REGION"],  # e.g., us-east-1
-        },
-    ],
-}
+```python
+from securicad import enterprise, aws_collector
 
 # Fetch AWS data
-aws_data = aws.import_cli(config=config)
+config_data = aws_collector.get_config_data(
+    access_key="ACCESS KEY",
+    secret_key="SECRET KEY",
+    region="REGION" # e.g., "us-east-1"
+)
+aws_data = aws_collector.collect(config=config_data)
 
 # securiCAD Enterprise credentials
 username = "username"
@@ -186,6 +181,7 @@ If you have installed securiCAD Enterprise with a client certificate or have rec
 To use your `.p12` certificate file with the SDK, you need to extract the `.crt` and `.key` files. Run the following snippets to extract the required files. When prompted for the Import Password, use the one provided to you by foreseeti.
 
 `openssl pkcs12 -in cert.p12 -nocerts -out cert.key -nodes`
+
 `openssl pkcs12 -in cert.p12 -clcerts -nokeys -out cert.crt`
 
 To run the SDK with the extracted files, update your `client` to the following:

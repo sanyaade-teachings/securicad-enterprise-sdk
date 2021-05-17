@@ -1,19 +1,12 @@
-import securicad.enterprise.aws_import_cli as aws
-from securicad import enterprise
-
-# Create a config with credentials for the AWS data fetcher
-config = {
-    "accounts": [
-        {
-            "access_key": "AWS ACCESS KEY",
-            "secret_key": "AWS SECRET KEY",
-            "regions": ["REGION"],  # e.g., us-east-1
-        },
-    ],
-}
+from securicad import enterprise, aws_collector
 
 # Fetch AWS data
-aws_data = aws.import_cli(config=config)
+config_data = aws_collector.get_config_data(
+    access_key="ACCESS KEY",
+    secret_key="SECRET KEY",
+    region="REGION" # e.g., "us-east-1"
+)
+aws_data = aws_collector.collect(config=config_data)
 
 # securiCAD Enterprise credentials
 username = "username"
