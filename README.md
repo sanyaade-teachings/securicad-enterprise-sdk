@@ -179,6 +179,29 @@ user = client.users.create_user(
 project.add_user(user=user, access_level=AccessLevel.USER)
 ```
 
+## Certificates
+If you have installed securiCAD Enterprise with a client certificate or have received one from foreseeti to access a managed instance your script will need to use the certificate to communicate with the instance.
+
+### Managed instance
+To use your `.p12` certificate file with the SDK, you need to extract the `.crt` and `.key` files. Run the following snippets to extract the required files. When prompted for the Import Password, use the one provided to you by foreseeti.
+
+`openssl pkcs12 -in cert.p12 -nocerts -out cert.key -nodes`
+`openssl pkcs12 -in cert.p12 -clcerts -nokeys -out cert.crt`
+
+To run the SDK with the extracted files, update your `client` to the following:
+
+```python
+client_cert = ("cert.crt", "cert.key")
+
+# Create an authenticated enterprise client
+client = enterprise.client(
+    url, settings.username, settings.password, client_cert=client_cert
+)
+```
+
+### On-premise installation
+For on-premise installations you can use the ca certificate directly as described in `example.py`
+
 ## Tunings
 
 You can modify models in specific ways with the tunings api.
