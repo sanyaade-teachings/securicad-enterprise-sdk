@@ -40,7 +40,7 @@ class Parsers:
 
         :param project: The :class:`Project` to add the generated model to.
         :param name: The name of the generated model.
-        :param cli_files: (optional) A list of CLI data created with ``aws_import_cli``.
+        :param cli_files: (optional) A list of CLI data created with ``securicad-aws-collector``.
         :param vul_files: (optional) A list of vulnerability data.
         :return: A :class:`ModelInfo` object representing the generated model.
         """

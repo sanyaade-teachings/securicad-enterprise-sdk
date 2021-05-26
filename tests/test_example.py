@@ -25,8 +25,7 @@ import utils
 # isort: off
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
-import securicad.enterprise.aws_import_cli as aws
-from securicad import enterprise
+from securicad import aws_collector, enterprise
 
 # isort: on
 
@@ -43,27 +42,55 @@ def test_example():
                 return org_name
 
     # Fetch AWS data
-    aws_data = aws.import_cli(config=conftest.AWS_IMPORT_CONFIG)
+    config_data = aws_collector.get_config_data(
+        access_key=conftest.AWS_IMPORT_CONFIG["accounts"][0]["access_key"],
+        secret_key=conftest.AWS_IMPORT_CONFIG["accounts"][0]["secret_key"],
+        region=conftest.AWS_IMPORT_CONFIG["accounts"][0]["regions"][0],
+    )
+    aws_data = aws_collector.collect(config=config_data)
 
-    # Create authenticated client
+    # securiCAD Enterprise credentials
+    username = conftest.ADMIN_USERNAME
+    password = conftest.ADMIN_PASSWORD
+
+    # (Optional) Organization of user
+    # If you are using the system admin account set org = None
+    org = None
+
+    # (Optional) CA certificate of securiCAD Enterprise
+    # If you don't want to verify the certificate set cacert = False
+    cacert = False
+
+    # securiCAD Enterprise URL
+    base_url = conftest.BASE_URL
+    backend_url = conftest.BACKEND_URL
+
+    # Create an authenticated enterprise client
     client = enterprise.client(
-        base_url=conftest.BASE_URL,
-        backend_url=conftest.BACKEND_URL,
-        username=conftest.ADMIN_USERNAME,
-        password=conftest.ADMIN_PASSWORD,
-        cacert=False,
+        base_url=base_url,
+        backend_url=backend_url,
+        username=username,
+        password=password,
+        organization=org,
+        cacert=cacert,
     )
 
     # Create organization and project
     org = client.organizations.create_organization(get_org_name(client))
-    project = client.projects.create_project("Example Project", organization=org)
+    client.projects.create_project("My project", organization=org)
 
-    # Generate model from AWS data
+    # Get the project where the model will be added
+    project = client.projects.get_project_by_name("My project")
+
+    # Generate securiCAD model from AWS data
     model_info = client.parsers.generate_aws_model(
-        project, name="Example Model", cli_files=[aws_data]
+        project, name="My model", cli_files=[aws_data]
     )
+    model = model_info.get_model()
 
-    # Set high value assets in model
+    # securiCAD metadata with all assets and attacksteps
+    metadata = client.metadata.get_metadata()
+
     high_value_assets = [
         {
             "metaconcept": "S3Bucket",
@@ -72,24 +99,23 @@ def test_example():
         }
     ]
 
-    model = model_info.get_model()
+    # Set high value assets in securiCAD model
     model.set_high_value_assets(high_value_assets=high_value_assets)
+
+    # Save changes to model in project
     model_info.save(model)
 
-    # Create scenario and get initial simulation
-    scenario = client.scenarios.create_scenario(
-        project, model_info, name="Example Scenario"
-    )
+    # Start a new simulation in a new scenario
+    scenario = client.scenarios.create_scenario(project, model_info, name="My scenario")
     simulation = client.simulations.get_simulation_by_name(
         scenario, name="Initial simulation"
     )
 
-    # Get results
+    # Poll for results and return them when simulation is done
     results = simulation.get_results()
+
     assert results["report_url"] == urljoin(
         conftest.BASE_URL,
         f"project/{project.pid}/scenario/{scenario.tid}/report/{simulation.simid}",
     )
-
-    # Results
     org.delete()

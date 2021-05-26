@@ -33,14 +33,16 @@ Please note, never store your credentials in source code, this is just an exampl
 
 To collect the AWS data, we use the [securiCAD AWS Collector](https://github.com/foreseeti/securicad-aws-collector).
 
+<!-- embedme example.py -->
+
 ```python
-from securicad import enterprise, aws_collector
+from securicad import aws_collector, enterprise
 
 # Fetch AWS data
 config_data = aws_collector.get_config_data(
     access_key="ACCESS KEY",
     secret_key="SECRET KEY",
-    region="REGION" # e.g., "us-east-1"
+    region="REGION",  # e.g., "us-east-1"
 )
 aws_data = aws_collector.collect(config=config_data)
 
@@ -53,7 +55,7 @@ password = "password"
 org = "My organization"
 
 # (Optional) CA certificate of securiCAD Enterprise
-# If you don't want to verify the certificate set cacert = None
+# If you don't want to verify the certificate set cacert = False
 cacert = "/path/to/cacert.pem"
 
 # securiCAD Enterprise URL
@@ -98,9 +100,10 @@ simulation = client.simulations.get_simulation_by_name(
 
 # Poll for results and return them when simulation is done
 results = simulation.get_results()
+
 ```
 
-If you wish to run the SDK with a local file, replace the `aws_data = aws.import_cli()` call in the above example with:
+If you wish to run the SDK with a local file, replace the `# Fetch AWS data` section in the above example with:
 
 ```python
 with open('data.json', mode='r', encoding='utf-8') as json_file:

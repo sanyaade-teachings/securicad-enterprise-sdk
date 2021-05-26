@@ -4,11 +4,17 @@ This file describes how to make release builds of `securicad-enterprise-sdk` and
 
 To make a release, perform the following steps:
 
+0. Verify project
 1. Make a release commit and push it to a new branch
 2. Make a pull request to `master` and get it approved and merged
 3. Make a release tag for the merged pull request
 4. Build distribution files
 5. Publish distribution files
+
+### 0. Verify project
+
+* All tests should pass
+* The latest version of `example.py` should be embedded in `README.md`. Run `npx embedme README.md` to embed it.
 
 ### 1. Make a release commit and push it to a new branch
 

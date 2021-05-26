@@ -216,10 +216,10 @@ def test_create_org(data):
             client.organizations.create_organization(name)
         utils.assert_status_code_exception(
             exception=e.value,
-            status_code=500,
+            status_code=400,
             method="PUT",
             url=utils.get_url("organization"),
-            data={"error": "Failed to add organization"},
+            data={"error": "Organization exists"},
         )
 
     def assert_create_org_fails(client, name):

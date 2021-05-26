@@ -1,10 +1,10 @@
-from securicad import enterprise, aws_collector
+from securicad import aws_collector, enterprise
 
 # Fetch AWS data
 config_data = aws_collector.get_config_data(
     access_key="ACCESS KEY",
     secret_key="SECRET KEY",
-    region="REGION" # e.g., "us-east-1"
+    region="REGION",  # e.g., "us-east-1"
 )
 aws_data = aws_collector.collect(config=config_data)
 
@@ -17,7 +17,7 @@ password = "password"
 org = "My organization"
 
 # (Optional) CA certificate of securiCAD Enterprise
-# If you don't want to verify the certificate set cacert = None
+# If you don't want to verify the certificate set cacert = False
 cacert = "/path/to/cacert.pem"
 
 # securiCAD Enterprise URL

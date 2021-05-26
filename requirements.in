@@ -1,6 +1,2 @@
-boto3
-botocore
-jsonschema
 securicad-model
-securicad-aws-collector
 requests

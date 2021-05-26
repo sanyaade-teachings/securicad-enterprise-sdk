@@ -6,16 +6,23 @@
 #
 appdirs==1.4.4
     # via black
-astroid==2.5.3
+astroid==2.5.6
     # via pylint
-attrs==20.3.0
+attrs==21.2.0
     # via
-    #   -c requirements.txt
+    #   jsonschema
     #   pytest
-black==20.8b1
+black==21.5b1
     # via -r dev-requirements.in
 bleach==3.3.0
     # via readme-renderer
+boto3==1.17.80
+    # via securicad-aws-collector
+botocore==1.20.80
+    # via
+    #   boto3
+    #   s3transfer
+    #   securicad-aws-collector
 certifi==2020.12.5
     # via
     #   -c requirements.txt
@@ -27,7 +34,9 @@ chardet==4.0.0
     #   -c requirements.txt
     #   requests
 click==7.1.2
-    # via black
+    # via
+    #   black
+    #   typer
 colorama==0.4.4
     # via twine
 coverage==5.5
@@ -40,7 +49,7 @@ idna==2.10
     # via
     #   -c requirements.txt
     #   requests
-importlib-metadata==4.0.0
+importlib-metadata==4.0.1
     # via
     #   keyring
     #   twine
@@ -54,6 +63,12 @@ jeepney==0.6.0
     # via
     #   keyring
     #   secretstorage
+jmespath==0.10.0
+    # via
+    #   boto3
+    #   botocore
+jsonschema==3.2.0
+    # via securicad-aws-collector
 keyring==23.0.1
     # via twine
 lazy-object-proxy==1.6.0
@@ -80,14 +95,18 @@ py==1.10.0
     # via pytest
 pycparser==2.20
     # via cffi
-pygments==2.8.1
+pygments==2.9.0
     # via readme-renderer
-pylint==2.7.4
+pylint==2.8.2
     # via -r dev-requirements.in
 pyparsing==2.4.7
     # via packaging
-pytest==6.2.3
+pyrsistent==0.17.3
+    # via jsonschema
+pytest==6.2.4
     # via -r dev-requirements.in
+python-dateutil==2.8.1
+    # via botocore
 readme-renderer==29.0
     # via twine
 regex==2021.4.4
@@ -99,35 +118,39 @@ requests==2.25.1
     #   -c requirements.txt
     #   requests-toolbelt
     #   twine
-rfc3986==1.4.0
+rfc3986==1.5.0
     # via twine
+s3transfer==0.4.2
+    # via boto3
 secretstorage==3.3.1
     # via keyring
-six==1.15.0
+securicad-aws-collector==1.2.2
+    # via -r dev-requirements.in
+six==1.16.0
     # via
-    #   -c requirements.txt
     #   bleach
+    #   jsonschema
+    #   python-dateutil
     #   readme-renderer
 toml==0.10.2
     # via
     #   black
     #   pylint
     #   pytest
-tqdm==4.60.0
+tqdm==4.61.0
     # via twine
 twine==3.4.1
     # via -r dev-requirements.in
 typed-ast==1.4.3
-    # via
-    #   black
-    #   mypy
-typing-extensions==3.7.4.3
-    # via
-    #   black
-    #   mypy
+    # via mypy
+typer==0.3.2
+    # via securicad-aws-collector
+typing-extensions==3.10.0.0
+    # via mypy
 urllib3==1.26.4
     # via
     #   -c requirements.txt
+    #   botocore
     #   requests
 webencodings==0.5.1
     # via bleach
@@ -135,3 +158,6 @@ wrapt==1.12.1
     # via astroid
 zipp==3.4.1
     # via importlib-metadata
+
+# The following packages are considered to be unsafe in a requirements file:
+# setuptools
