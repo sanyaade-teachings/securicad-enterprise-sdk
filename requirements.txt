@@ -4,7 +4,7 @@
 #
 #    ./tools/scripts/create_requirements.sh
 #
-certifi==2020.12.5
+certifi==2021.5.30
     # via requests
 chardet==4.0.0
     # via requests
@@ -14,5 +14,5 @@ requests==2.25.1
     # via -r requirements.in
 securicad-model==0.0.1
     # via -r requirements.in
-urllib3==1.26.4
+urllib3==1.26.5
     # via requests
