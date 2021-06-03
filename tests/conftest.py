@@ -14,6 +14,7 @@
 
 import json
 import sys
+import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -233,13 +234,29 @@ def project(data, client, organization):
 
 
 @pytest.fixture()
-def model(data, project, client):
-    name = "smallAwsModel.sCAD"
+def model_info(data, project, client):
+    name = "aws.sCAD"
     model_path = Path(__file__).with_name(name)
     with model_path.open(mode="rb") as reader:
-        model = client.models.upload_scad_model(
+        model_info = client.models.upload_scad_model(
             project, filename=name, file_io=reader, description=""
         )
-        yield model.get_model()
+        yield model_info
 
-    model.delete()
+    model_info.delete()
+
+
+@pytest.fixture()
+def model(model_info):
+    yield model_info.get_model()
+
+
+@pytest.fixture()
+def scenario(project, model_info):
+    name = str(uuid.uuid4())
+    description = str(uuid.uuid4())
+    scenario = project.create_scenario(
+        name=name, model_info=model_info, description=description, tunings=[]
+    )
+    yield scenario
+    scenario.delete()

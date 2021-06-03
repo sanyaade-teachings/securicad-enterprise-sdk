@@ -207,12 +207,7 @@ def test_project_import_models(client, organization, project):
     other_project.delete()
 
 
-def test_project_list_scenarios(project):
-    modelpath = Path(__file__).with_name("aws.sCAD")
-    with open(modelpath, mode="rb") as reader:
-        model_info = project.upload_scad_model(
-            filename="aws.sCAD", file_io=reader, description="descr"
-        )
+def test_project_list_scenarios(project, model_info):
     assert project.list_scenarios() == []
     project.create_scenario(
         model_info=model_info,

@@ -57,7 +57,7 @@ def test_convert_attacker_object_name(data, project, model):
                 "condition": {"tag": "", "value": ""},
                 "consequence": None,
                 "defense": None,
-                "id": 151,
+                "id": 152,
                 "name": "i-1",
                 "probability": None,
                 "scope": "attacker",
@@ -161,7 +161,7 @@ def test_convert_ttc_object(data, project, model):
                 "condition": {"tag": "", "value": ""},
                 "consequence": None,
                 "defense": None,
-                "id": 151,
+                "id": 152,
                 "name": "i-1",
                 "probability": None,
                 "scope": "object",
@@ -222,7 +222,7 @@ def test_attacker_object_name(client, project, model):
         attackstep="HighPrivilegeAccess",
         scope="attacker",
         name="i-1",
-        id_=151,
+        id_=152,
     )
 
 
@@ -335,7 +335,7 @@ def test_all_attackstep_ttc_object(client, project, model):
         name="i-1",
         class_="EC2Instance",
         ttc="Exponential,3",
-        id_=151,
+        id_=152,
     )
 
 
@@ -442,7 +442,7 @@ def test_one_attackstep_ttc_object(client, project, model):
         scope="object",
         name="i-1",
         ttc="Exponential,3",
-        id_=151,
+        id_=152,
         attackstep="HighPrivilegeAccess",
     )
 
@@ -468,7 +468,7 @@ def test_one_attackstep_ttc_object(client, project, model):
         name="i-1",
         class_="EC2Instance",
         ttc="Exponential,3",
-        id_=151,
+        id_=152,
         attackstep="HighPrivilegeAccess",
     )
 
@@ -633,7 +633,7 @@ def test_defense_probability_object_all_defense(client, project, model):
         name="i-1",
         scope="object",
         probability="0.5",
-        id_=151,
+        id_=152,
     )
 
 
@@ -654,7 +654,7 @@ def test_defense_probability_object_one_defense(client, project, model):
         scope="object",
         probability="0.5",
         defense="Patched",
-        id_=151,
+        id_=152,
     )
 
 
@@ -675,7 +675,7 @@ def test_defense_probability_class_object_all_defense(client, project, model):
         name="i-1",
         scope="object",
         probability="0.5",
-        id_=151,
+        id_=152,
     )
 
 
@@ -701,7 +701,7 @@ def test_defense_probability_class_object_one_defense(client, project, model):
         scope="object",
         probability="0.5",
         defense="Patched",
-        id_=151,
+        id_=152,
     )
 
 
@@ -802,7 +802,7 @@ def test_tag_object(client, project, model):
         tuning,
         project=project,
         name="i-1",
-        id_=151,
+        id_=152,
         scope="object",
         tag="a",
         value="b",
@@ -823,7 +823,7 @@ def test_tag_object_class(client, project, model):
         tuning,
         project=project,
         class_="EC2Instance",
-        id_=151,
+        id_=152,
         name="i-1",
         scope="object",
         tag="a",
