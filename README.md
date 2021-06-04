@@ -451,6 +451,62 @@ model.disable_attackstep("S3Bucket", "ReadObject")
 model_info.save(model)
 ```
 
+## Batch scenario operations
+
+Enterprise also supports batch scenario operations through the API.
+
+You can POST json data to `HOST/coordinator/v1/jobs`. This endpoint requires a valid JWT token from the corresponding Enterprise instance.
+
+Here's a brief example of input data, using output json data from the securicad-aws-collector.
+
+```python
+
+base64_encoded_aws_collector_data = base64.b64encode(json.dumps(aws_data).encode("utf-8")).decode("utf-8")
+
+test_data = {
+    "name": "model_of_test_env",
+    "parser": "aws-parser",
+    "project_id": project.pid,
+    "files": [
+        {
+            "sub_parser": "aws-cli-parser",
+            "name": "aws_cli.json",
+            "content": base64_encoded_aws_collector_data,
+        },
+    ],
+    "scenarios": [
+        {
+            "name": "myscenario",
+            "tunings": [ # These tunings are the same tunings as described above
+                {
+                    "type": "consequence",
+                    "op": "apply",
+                    "filter": {
+                        "metaconcept": "EC2Instance",
+                        "attackstep": "HighPrivilegeAccess",
+                    },
+                    "consequence": 7,
+                },
+                {
+                    "type": "attacker",
+                    "op": "apply",
+                    "filter": {
+                        "object_name": "instance1",
+                        "attackstep": "HighPrivilegeAccess",
+                    },
+                },
+            ],
+        },
+    ],
+}
+
+coordinator_url = f"https://enterpriseinstance.foo/coordinator/v1"
+resp = client._session.post(f"{coordinator_url}/jobs", json=test_data)
+tag = resp.json()["response"]["tag"]
+# you can poll "{coordinator_url}/poll/{tag}" to get job status
+
+```
+
 ## Examples
 
 Below are a few examples of how you can use `boto3` to automatically collect name or ids for your high value assets.
