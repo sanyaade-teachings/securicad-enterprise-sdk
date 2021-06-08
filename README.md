@@ -455,7 +455,7 @@ model_info.save(model)
 
 Enterprise also supports batch scenario operations through the API.
 
-You can POST json data to `HOST/coordinator/v1/jobs`. This endpoint requires a valid JWT token from the corresponding Enterprise instance.
+You can POST json data to `HOST/batch/v1/jobs`. This endpoint requires a valid JWT token from the corresponding Enterprise instance.
 
 Here's a brief example of input data, using output json data from the securicad-aws-collector.
 
@@ -500,10 +500,10 @@ test_data = {
     ],
 }
 
-coordinator_url = f"https://enterpriseinstance.foo/coordinator/v1"
-resp = client._session.post(f"{coordinator_url}/jobs", json=test_data)
+batch_url = f"https://enterpriseinstance.foo/batch/v1"
+resp = client._session.post(f"{batch_url}/jobs", json=test_data)
 tag = resp.json()["response"]["tag"]
-# you can poll "{coordinator_url}/poll/{tag}" to get job status
+# you can poll "{batch_url}/poll/{tag}" to get job status
 
 ```
 
