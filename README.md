@@ -229,7 +229,6 @@ To add an attack step to the attacker's entrypoints, you can create a tuning lik
 tuning = client.tunings.create_tuning(
     project,
     tuning_type="attacker",
-    op="apply",
     filterdict={"attackstep": "HighPrivilegeAccess", "object_name": "Prod srv 1"},
 )
 ```
@@ -251,7 +250,6 @@ To set the Time-To-Compromise distribution function of a specific attack step of
 tuning = client.tunings.create_tuning(
     project,
     tuning_type="ttc",
-    op="apply",
     filterdict={"object_name": "Prod srv 1", "attackstep": "HighPrivilegeAccess"},
     ttc="Exponential,3",
 )
@@ -263,7 +261,6 @@ or all objects of a class
 tuning = client.tunings.create_tuning(
     project,
     tuning_type="ttc",
-    op="apply",
     filterdict={"metaconcept": "EC2Instance", "attackstep": "HighPrivilegeAccess"},
     ttc="Exponential,3",
 )
@@ -288,7 +285,6 @@ To enable all defenses in the model you can create a tuning like this:
 tuning = client.tunings.create_tuning(
     project,
     tuning_type="probability",
-    op="apply",
     filterdict={},
     probability=1.0,
 )
@@ -300,7 +296,6 @@ Or to set patched on all `EC2Instance` objects:
 tuning = client.tunings.create_tuning(
     project,
     tuning_type="probability",
-    op="apply",
     filterdict={"metaconcept": "EC2Instance", "defense": "Patched"},
     probability=0.5,
 )
@@ -325,7 +320,6 @@ To set the consequence of any EC2Instance object in prod being reached:
 tuning = client.tunings.create_tuning(
     project,
     tuning_type="consequence",
-    op="apply",
     filterdict={"metaconcept": "EC2Instance", "defense": "Patched", "tags": {"env": "prod"}},
     consequence=2,
 )
@@ -350,7 +344,6 @@ To add tags to all `EC2Instance` objects:
 tuning = client.tunings.create_tuning(
     project,
     tuning_type="tag",
-    op="apply",
     filterdict={"metaconcept": "EC2Instance"},
     tags={"c/i/a": "1/2/3"},
 )
