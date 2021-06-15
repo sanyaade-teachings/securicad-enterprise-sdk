@@ -205,190 +205,166 @@ For on-premise installations you can use the ca certificate directly as describe
 
 You can modify models in specific ways with the tunings api.
 
-A tuning has 3 core attributes, type, filter, arguments. The type is the category of change, the filter is what you want the change applied to, and the arguments are what new values you want.
+A tuning has 3 core attributes: type, filter, arguments. The type is the category of change, the filter is what you want the change applied to, and the arguments are what new values you want.
 
 **Type**
 
-The tuning type is one of 4, the value of this field affects what other arguments are accepted.
+The tuning type is one of 5, the value of this field affects what other arguments are accepted.
 
-- attacker, move the attacker entrypoint to one or more attacksteps
-- ttc, set ttc distributions on attacksteps
-- probability, set the probability of defenses
-- consequence, set the consequence on attacksteps
-- tag, set one or more tags on objects
+- `attacker`, add attack steps to the attacker's entrypoints
+- `ttc`, set the TTC distribution function of attack steps
+- `probability`, set the probability of defenses
+- `consequence`, set the consequence of attack steps
+- `tag`, add tags to objects
 
 **Filter**
 
 The filter is how you select which objects the arguments are applied to. It's a dictionary which, depending on type, accepts different values. More details in the various type descriptions.
 
-*Note on tags in filter*
+### `attacker`: Adding attack steps to the attacker's entrypoints
 
-Currently only one tag is supported. This limitation will be removed in a later version of securiCAD Enterprise.
-
-**object_name**
-
-If there are several objects with the same name but different types the metaconcept argument will be used to differentiate. If there are multiple objects with the same name and same type it will raise an exception. This limitation will be removed in a later version of securiCAD Enterprise.
-
-### attacker: Moving the attacker entrypoint
-
-To move the attacker you can create a tuning like this:
+To add an attack step to the attacker's entrypoints, you can create a tuning like this:
 
 ```python
-
 tuning = client.tunings.create_tuning(
-        project,
-        model,
-        tuning_type="attacker",
-        op="apply",
-        filterdict={"attackstep": "HighPrivilegeAccess", "object_name": "Prod srv 1"},
-        name="prod_zeroday",
-    )
+    project,
+    tuning_type="attacker",
+    op="apply",
+    filterdict={"attackstep": "HighPrivilegeAccess", "object_name": "Prod srv 1"},
+)
 ```
 
-This will set the attacker to HighPrivilegeAccess on the object named "Prod srv 1". The tuning itself will be named "prod_zeroday".
+This will add the attack step `HighPrivilegeAccess` of objects named `Prod srv 1` to the attacker's entrypoints.
 
-The filter will accept these arguments:
+The filter accepts these arguments:
 
-- attackstep: which attackstep to connect to. If empty will be all attacksteps.
-- metaconcept: the class of object to connect to the attackstep(s) on.
-- object_name: name of object. If there are several objects with the same name but different types the metaconcept argument will be used to differentiate. If there are multiple objects with the same name and same type it will raise a ValueError exception. This limitation will be removed in a later version of securiCAD Enterprise.
-- tags: Tags on the objects you want to make the attacker reach.
+- `metaconcept`: the class of the objects to connect the attacker to.
+- `object_name`: the name of the objects to connect the attacker to.
+- `attackstep`: the name of the attack step to connect the attacker to.
+- `tags`: tags that must be present on the objects to connect the attacker to.
 
-### ttc: Set Time-To-Compromise distributions on attacksteps
+### `ttc`: Setting the Time-To-Compromise distribution function of attack steps
 
-To set Time-To-Compormise on a specific attackstep on a specific object you can create a tuning like this:
+To set the Time-To-Compromise distribution function of a specific attack step of a specific object, you can create a tuning like this:
 
 ```python
 tuning = client.tunings.create_tuning(
-        project,
-        model,
-        tuning_type="ttc",
-        op="apply",
-        filterdict={"object_name": "Prod srv 1", "attackstep": "HighPrivilegeAccess"},
-        name="one_attackstep_ttc_object",
-        ttc="Exponential,3",
-    )
+    project,
+    tuning_type="ttc",
+    op="apply",
+    filterdict={"object_name": "Prod srv 1", "attackstep": "HighPrivilegeAccess"},
+    ttc="Exponential,3",
+)
 ```
 
 or all objects of a class
 
-
 ```python
 tuning = client.tunings.create_tuning(
-        project,
-        model,
-        tuning_type="ttc",
-        op="apply",
-        filterdict={"metaconcept": "EC2Instance", "attackstep": "HighPrivilegeAccess"},
-        name="one_attackstep_ttc",
-        ttc="Exponential,3",
-    )
+    project,
+    tuning_type="ttc",
+    op="apply",
+    filterdict={"metaconcept": "EC2Instance", "attackstep": "HighPrivilegeAccess"},
+    ttc="Exponential,3",
+)
 ```
 
 The filter will accept these arguments:
 
-- attackstep: which attackstep to set ttc for. If empty will be all attacksteps.
-- metaconcept: the class of object to set ttc on attackstep(s) for.
-- object_name: name of object.
-- tags: Tags on the objects you want to set ttc for.
+- `metaconcept`: the class of the objects to set TTC for.
+- `object_name`: the name of the objects to set TTC for.
+- `attackstep`: the name of the attack step to set TTC for.
+- `tags`: tags that must be present on the objects to set TTC for.
 
 The tuning takes these arguments:
 
-- ttc: A string representation of the ttc distribution.
+- `ttc`: A string representation of the TTC distribution function.
 
-### probability: Set defense probability
+### `probability`: Setting the probability of defenses
 
-To enable all defenses in the model you can create a tuning like this
+To enable all defenses in the model you can create a tuning like this:
 
 ```python
 tuning = client.tunings.create_tuning(
-        project,
-        model,
-        tuning_type="probability",
-        op="apply",
-        filterdict={},
-        name="all_defenses",
-        probability="1.0",
-    )
+    project,
+    tuning_type="probability",
+    op="apply",
+    filterdict={},
+    probability=1.0,
+)
 ```
 
-Or to set patched on all EC2Instance objects:
+Or to set patched on all `EC2Instance` objects:
 
 ```python
 tuning = client.tunings.create_tuning(
-        project,
-        model,
-        tuning_type="probability",
-        op="apply",
-        filterdict={"metaconcept" : "EC2Instance", "defense" : "Patched"},
-        name="hosts_maybe_patched",
-        probability="0.5",
-    )
+    project,
+    tuning_type="probability",
+    op="apply",
+    filterdict={"metaconcept": "EC2Instance", "defense": "Patched"},
+    probability=0.5,
+)
 ```
 
 The filter will accept these arguments:
 
-- defense: which defense to set probability for. If empty will be all defenses.
-- metaconcept: the class of object to set probability on defense(s) for.
-- object_name: name of object.
-- tags: Tags on the objects you want to set defense probability for.
+- `metaconcept`: the class of the objects to set the probability for.
+- `object_name`: the name of the objects to set the probability for.
+- `defense`: the name of the defense to set the probability for.
+- `tags`: tags that must be present on the objects to set the probability for.
 
 The tuning takes these arguments:
 
-- probability: Probability of defense being active
+- `probability`: Probability of the defense being enabled.
 
-### consequence: Set consequence values of attacksteps being reached
+### `consequence`: Setting the consequence of attack steps
 
-To set consequence of any EC2Instance object in prod being reached:
+To set the consequence of any EC2Instance object in prod being reached:
 
 ```python
 tuning = client.tunings.create_tuning(
-        project,
-        model,
-        tuning_type="consequence",
-        op="apply",
-        filterdict={"metaconcept" : "EC2Instance", "defense" : "Patched", "tags": {"env": "prod"}},
-        name="defense_probability_all",
-        consequence=2,
-    )
+    project,
+    tuning_type="consequence",
+    op="apply",
+    filterdict={"metaconcept": "EC2Instance", "defense": "Patched", "tags": {"env": "prod"}},
+    consequence=2,
+)
 ```
 
 The filter will accept these arguments:
 
-- attackstep: which attacksteps to set consequence for. If empty will be all attackstepss
-- metaconcept: the class of object to set consequence on attacksteps(s) for.
-- object_name: name of object.
-- tags: Tags on the objects you want to set attacksteps probability for.
+- `metaconcept`: the class of the objects to set the consequence for.
+- `object_name`: the name of the objects to set the consequence for.
+- `attackstep`: the name of the attack step to set the consequence for.
+- `tags`: tags that must be present on the objects to set the consequence for.
 
 The tuning takes these arguments:
 
-- consequence: Consequence value of attackstep(s) being reached. An integer in the range [1,10].
+- `consequence`: Consequence value of attack step(s) being reached. An integer in the range [1,10].
 
-### tag: Set tags on objects
+### `tag`: Adding tags to objects
 
-To set tags on all EC2Instance objects:
+To add tags to all `EC2Instance` objects:
 
 ```python
 tuning = client.tunings.create_tuning(
-        project,
-        model,
-        tuning_type="tag",
-        op="apply",
-        filterdict={"metaconcept": "EC2Instance"},
-        name="tag_all_prod_hosts",
-        tags={"c/i/a": "1/2/3"},
-    )
+    project,
+    tuning_type="tag",
+    op="apply",
+    filterdict={"metaconcept": "EC2Instance"},
+    tags={"c/i/a": "1/2/3"},
+)
 ```
 
 The filter will accept these arguments:
 
-- metaconcept: the class of object to set consequence on attacksteps(s) for.
-- object_name: name of object.
-- tags: Tags on the objects you want to set attacksteps probability for.
+- `metaconcept`: the class of the objects to add tags to.
+- `object_name`: the name of the objects to add tags to.
+- `tags`: tags that must be present on the objects to add tags to.
 
 The tuning takes these arguments:
 
-- tags: A dictionary of zero or more key-value pairs.
+- `tags`: A dictionary of zero or more key-value pairs.
 
 ## Vulnerability data and vulnerabilities
 securiCAD Enterprise supports vulnerability data from third parties in combination with the AWS data. Typical examples are vulnerability scanners, static code analysis and dependency managers. Vulnerability data can be used to simulate the impact of known vulnerabilities in your AWS environment.
@@ -436,7 +412,7 @@ securiCAD Enterprise uses the [CVSS vector](https://www.first.org/cvss/v3.1/spec
 
 `CVSS:2.0` vectors are automatically converted to `CVSS:3` by the tool and if multiple versions are available, the tool will always select the latest one.
 
-## Disable attacksteps
+## Disable attack steps
 
 To configure the attack simulation and the capabilities of the attacker use `Model.disable_attackstep(metaconcept, attackstep, name)`:
 

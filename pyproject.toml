@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [tool.isort]
 profile = "black"
 py_version = "38"
@@ -6,10 +10,17 @@ src_paths = [".", "tests"]
 [tool.black]
 target-version = ["py38"]
 
+[tool.mypy]
+python_version = "3.8"
+
 [tool.pylint.messages_control]
-# https://black.readthedocs.io/en/stable/compatible_configs.html#pylint
-disable = "C0330, C0326"
+# C0330, C0326: https://black.readthedocs.io/en/stable/guides/using_black_with_other_tools.html#pylint
+# W0212: protected-access
+# R0902: too-many-instance-attributes
+# R0903: too-few-public-methods
+# R0913: too-many-arguments
+disable = "C0330, C0326, W0212, R0902, R0903, R0913"
 
 [tool.pylint.format]
 max-line-length = "88"
-good-names = "e, f"
+good-names = "e, f, op"

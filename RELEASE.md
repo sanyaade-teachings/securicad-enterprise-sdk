@@ -69,16 +69,10 @@ Create and activate a virtual Python environment:
 . venv/bin/activate
 ```
 
-Build source distribution:
+Build source and wheel distribution:
 
 ```
-python setup.py sdist
-```
-
-Build wheel distribution:
-
-```
-python setup.py bdist_wheel
+python -m build
 ```
 
 There should now be two files under the directory `dist/`: `securicad-enterprise-0.0.2.tar.gz` and `securicad_enterprise-0.0.2-py3-none-any.whl`.

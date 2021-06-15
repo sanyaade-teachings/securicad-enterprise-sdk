@@ -125,8 +125,8 @@ def read_data() -> None:
         "uid": 1,
         "username": ADMIN_USERNAME,
         "password": ADMIN_PASSWORD,
-        "firstname": "sys",
-        "lastname": "admin",
+        "firstname": "sysadmin",
+        "lastname": "sysadmin",
         "role": Role.SYSADMIN,
     }
     for user in data["users"]:

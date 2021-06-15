@@ -1,9 +1,0 @@
--c requirements.txt
-black
-coverage
-isort
-mypy
-pylint
-pytest
-securicad-aws-collector
-twine

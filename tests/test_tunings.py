@@ -14,397 +14,257 @@
 
 import sys
 from pathlib import Path
-
-import pytest
-
-import utils
+from typing import Any, Dict, Optional
 
 # isort: off
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
-from securicad.enterprise.exceptions import StatusCodeException
-from securicad.enterprise.tunings import Tunings
+from securicad.enterprise.projects import Project
+from securicad.enterprise.tunings import Tuning
 
 # isort: on
 
 
-def get_converted(project, model, newformat):
-    return Tunings._convert_to_old_format(
-        project,
-        model,
-        op=newformat["op"],
-        filterdict=newformat["filter"],
-        tuning_type=newformat["type"],
-        name="converted",
-        ttc=newformat.get("ttc", None),
-        tags=newformat.get("tags", []),
-        consequence=newformat.get("consequence", None),
-        probability=newformat.get("probability", None),
-    )
-
-
-def test_convert_attacker_object_name(data, project, model):
-    newformat = {
-        "type": "attacker",
-        "op": "apply",
-        "filter": {"attackstep": "HighPrivilegeAccess", "object_name": "i-1"},
-    }
-    oldformat: Dict[str, Any] = {
-        "pid": project.pid,
-        "configs": [
-            {
-                "attackstep": "HighPrivilegeAccess",
-                "condition": {"tag": "", "value": ""},
-                "consequence": None,
-                "defense": None,
-                "id": 152,
-                "name": "i-1",
-                "probability": None,
-                "scope": "attacker",
-            }
-        ],
-    }
-    converted = get_converted(project, model, newformat)
-    assert converted == oldformat
-
-
-def test_convert_attacker_metaconcept(data, project, model):
-    newformat = {
-        "type": "attacker",
-        "op": "apply",
-        "filter": {"attackstep": "HighPrivilegeAccess", "metaconcept": "EC2Instance"},
-    }
-    oldformat: Dict[str, Any] = {
-        "pid": project.pid,
-        "configs": [
-            {
-                "attackstep": "HighPrivilegeAccess",
-                "condition": {"tag": "", "value": ""},
-                "consequence": None,
-                "defense": None,
-                "id": "EC2Instance",
-                "probability": None,
-                "scope": "attacker",
-            }
-        ],
-    }
-    converted = get_converted(project, model, newformat)
-    assert converted == oldformat
-
-
-def test_convert_attacker_metaconcept_tag(data, project, model):
-    newformat = {
-        "type": "attacker",
-        "op": "apply",
-        "filter": {
-            "attackstep": "HighPrivilegeAccess",
-            "metaconcept": "EC2Instance",
-            "tags": {"tagkey": "tagvalue"},
-        },
-    }
-    oldformat: Dict[str, Any] = {
-        "pid": project.pid,
-        "configs": [
-            {
-                "attackstep": "HighPrivilegeAccess",
-                "condition": {"tag": "tagkey", "value": "tagvalue"},
-                "consequence": None,
-                "defense": None,
-                "id": "EC2Instance",
-                "probability": None,
-                "scope": "attacker",
-            }
-        ],
-    }
-    converted = get_converted(project, model, newformat)
-    assert converted == oldformat
-
-
-def test_convert_ttc_metaconcept(data, project, model):
-    newformat = {
-        "type": "ttc",
-        "op": "apply",
-        "filter": {"attackstep": "HighPrivilegeAccess", "metaconcept": "EC2Instance"},
-        "ttc": "Exponential,3",
-    }
-    oldformat: Dict[str, Any] = {
-        "pid": project.pid,
-        "configs": [
-            {
-                "attackstep": "HighPrivilegeAccess",
-                "condition": {"tag": "", "value": ""},
-                "consequence": None,
-                "defense": None,
-                "id": "EC2Instance",
-                "probability": None,
-                "scope": "class",
-                "ttc": "Exponential,3",
-            }
-        ],
-    }
-    converted = get_converted(project, model, newformat)
-    assert converted == oldformat
-
-
-def test_convert_ttc_object(data, project, model):
-    newformat = {
-        "type": "ttc",
-        "op": "apply",
-        "filter": {"attackstep": "HighPrivilegeAccess", "object_name": "i-1"},
-        "ttc": "Exponential,3",
-    }
-    oldformat: Dict[str, Any] = {
-        "pid": project.pid,
-        "configs": [
-            {
-                "attackstep": "HighPrivilegeAccess",
-                "condition": {"tag": "", "value": ""},
-                "consequence": None,
-                "defense": None,
-                "id": 152,
-                "name": "i-1",
-                "probability": None,
-                "scope": "object",
-                "ttc": "Exponential,3",
-            }
-        ],
-    }
-    converted = get_converted(project, model, newformat)
-    assert converted == oldformat
-
-
 def verify_tuning_response(
-    tuning_data,
-    project,
-    id_=None,
-    scope="",
-    attackstep=None,
-    ttc=None,
-    condition={"tag": "", "value": ""},
-    consequence=None,
-    defense=None,
-    probability=None,
-    class_=None,
-    name=None,
-    tag=None,
-    value=None,
+    tuning: Tuning,
+    project: Project,
+    tuning_type: str,
+    op: str,
+    filter_metaconcept: Optional[str] = None,
+    filter_object_name: Optional[str] = None,
+    filter_attackstep: Optional[str] = None,
+    filter_defense: Optional[str] = None,
+    filter_tags: Optional[Dict[str, Any]] = None,
+    tags: Optional[Dict[str, Any]] = None,
+    ttc: Optional[str] = None,
+    probability: Optional[float] = None,
+    consequence: Optional[int] = None,
 ):
-    assert tuning_data.project.pid == project.pid
-    assert tuning_data.id_ == id_
-    assert tuning_data.scope == scope
-    assert tuning_data.attackstep == attackstep
-    assert tuning_data.ttc == ttc
-    assert tuning_data.condition == condition
-    assert tuning_data.consequence == consequence
-    assert tuning_data.defense == defense
-    assert tuning_data.probability == probability
-    assert tuning_data.class_ == class_
-    assert tuning_data.name == name
-    assert tuning_data.tag == tag
-    assert tuning_data.value == value
+    assert tuning.project.pid == project.pid
+    assert tuning.tuning_type == tuning_type
+    assert tuning.op == op
+    assert tuning.filter_metaconcept == filter_metaconcept
+    assert tuning.filter_object_name == filter_object_name
+    assert tuning.filter_attackstep == filter_attackstep
+    assert tuning.filter_defense == filter_defense
+    assert tuning.filter_tags == filter_tags
+    assert tuning.tags == tags
+    assert tuning.ttc == ttc
+    assert tuning.probability == probability
+    assert tuning.consequence == consequence
 
 
 # Attacker entry
 
 
-def test_attacker_object_name(client, project, model):
+def test_attacker_object_name(client, project):
     tuning = client.tunings.create_tuning(
         project,
-        model,
         tuning_type="attacker",
         op="apply",
-        filterdict={"attackstep": "HighPrivilegeAccess", "object_name": "i-1"},
-        name="test_attacker_object_name",
+        filterdict={
+            "attackstep": "HighPrivilegeAccess",
+            "object_name": "i-1",
+        },
     )
     verify_tuning_response(
         tuning,
         project=project,
-        attackstep="HighPrivilegeAccess",
-        scope="attacker",
-        name="i-1",
-        id_=152,
+        tuning_type="attacker",
+        op="apply",
+        filter_object_name="i-1",
+        filter_attackstep="HighPrivilegeAccess",
     )
 
 
-def test_attacker_object_tag(client, project, model):
+def test_attacker_object_tag(client, project):
     tuning = client.tunings.create_tuning(
         project,
-        model,
         tuning_type="attacker",
         op="apply",
-        filterdict={"attackstep": "HighPrivilegeAccess", "tags": {"env": "prod"}},
-        name="test_attacker_object_name",
+        filterdict={
+            "attackstep": "HighPrivilegeAccess",
+            "tags": {"env": "prod"},
+        },
     )
     verify_tuning_response(
         tuning,
         project=project,
-        attackstep="HighPrivilegeAccess",
-        scope="attacker",
-        condition={"tag": "env", "value": "prod"},
+        tuning_type="attacker",
+        op="apply",
+        filter_attackstep="HighPrivilegeAccess",
+        filter_tags={"env": "prod"},
     )
 
 
 # TTC all attacksteps
 
 
-def test_all_attackstep_ttc_all(client, project, model):
+def test_all_attackstep_ttc_all(client, project):
     tuning = client.tunings.create_tuning(
         project,
-        model,
         tuning_type="ttc",
         op="apply",
         filterdict={},
-        name="test_all_attackstep_ttc_all",
         ttc="Exponential,3",
     )
-    verify_tuning_response(tuning, project=project, scope="any", ttc="Exponential,3")
+    verify_tuning_response(
+        tuning,
+        project=project,
+        tuning_type="ttc",
+        op="apply",
+        ttc="Exponential,3",
+    )
 
 
-def test_all_attackstep_ttc_all_tag(client, project, model):
+def test_all_attackstep_ttc_all_tag(client, project):
     tuning = client.tunings.create_tuning(
         project,
-        model,
         tuning_type="ttc",
         op="apply",
         filterdict={"tags": {"env": "prod"}},
-        name="test_all_attackstep_ttc_all",
         ttc="Exponential,3",
     )
     verify_tuning_response(
         tuning,
         project=project,
-        scope="any",
+        tuning_type="ttc",
+        op="apply",
+        filter_tags={"env": "prod"},
         ttc="Exponential,3",
-        condition={"tag": "env", "value": "prod"},
     )
 
 
-def test_all_attackstep_ttc_class(client, project, model):
+def test_all_attackstep_ttc_class(client, project):
     tuning = client.tunings.create_tuning(
         project,
-        model,
         tuning_type="ttc",
         op="apply",
         filterdict={"metaconcept": "EC2Instance"},
-        name="test_all_attackstep_ttc_class",
         ttc="Exponential,3",
     )
     verify_tuning_response(
         tuning,
         project=project,
-        scope="class",
-        id_="EC2Instance",
-        ttc="Exponential,3",
-    )
-
-
-def test_all_attackstep_ttc_class_tag(client, project, model):
-    tuning = client.tunings.create_tuning(
-        project,
-        model,
         tuning_type="ttc",
         op="apply",
-        filterdict={"metaconcept": "EC2Instance", "tags": {"env": "prod"}},
-        name="test_all_attackstep_ttc_class",
+        filter_metaconcept="EC2Instance",
         ttc="Exponential,3",
-    )
-    verify_tuning_response(
-        tuning,
-        project=project,
-        scope="class",
-        id_="EC2Instance",
-        ttc="Exponential,3",
-        condition={"tag": "env", "value": "prod"},
     )
 
 
-def test_all_attackstep_ttc_object(client, project, model):
+def test_all_attackstep_ttc_class_tag(client, project):
     tuning = client.tunings.create_tuning(
         project,
-        model,
         tuning_type="ttc",
         op="apply",
-        filterdict={"metaconcept": "EC2Instance", "object_name": "i-1"},
-        name="test_all_attackstep_ttc_object",
+        filterdict={
+            "metaconcept": "EC2Instance",
+            "tags": {"env": "prod"},
+        },
         ttc="Exponential,3",
     )
     verify_tuning_response(
         tuning,
         project=project,
-        scope="object",
-        name="i-1",
-        class_="EC2Instance",
+        tuning_type="ttc",
+        op="apply",
+        filter_metaconcept="EC2Instance",
+        filter_tags={"env": "prod"},
         ttc="Exponential,3",
-        id_=152,
+    )
+
+
+def test_all_attackstep_ttc_object(client, project):
+    tuning = client.tunings.create_tuning(
+        project,
+        tuning_type="ttc",
+        op="apply",
+        filterdict={
+            "metaconcept": "EC2Instance",
+            "object_name": "i-1",
+        },
+        ttc="Exponential,3",
+    )
+    verify_tuning_response(
+        tuning,
+        project=project,
+        tuning_type="ttc",
+        op="apply",
+        filter_metaconcept="EC2Instance",
+        filter_object_name="i-1",
+        ttc="Exponential,3",
     )
 
 
 # TTC one attackstep
 
 
-def test_one_attackstep_ttc(client, project, model):
+def test_one_attackstep_ttc(client, project):
     tuning = client.tunings.create_tuning(
         project,
-        model,
         tuning_type="ttc",
         op="apply",
         filterdict={"attackstep": "HighPrivilegeAccess"},
-        name="test_one_attackstep_ttc_class",
         ttc="Exponential,3",
     )
     verify_tuning_response(
         tuning,
         project=project,
-        scope="any",
-        ttc="Exponential,3",
-        attackstep="HighPrivilegeAccess",
-    )
-
-
-def test_one_attackstep_ttc_tag(client, project, model):
-    tuning = client.tunings.create_tuning(
-        project,
-        model,
         tuning_type="ttc",
         op="apply",
-        filterdict={"attackstep": "HighPrivilegeAccess", "tags": {"env": "prod"}},
-        name="test_one_attackstep_ttc_class",
+        filter_attackstep="HighPrivilegeAccess",
         ttc="Exponential,3",
-    )
-    verify_tuning_response(
-        tuning,
-        project=project,
-        scope="any",
-        ttc="Exponential,3",
-        attackstep="HighPrivilegeAccess",
-        condition={"tag": "env", "value": "prod"},
     )
 
 
-def test_one_attackstep_ttc_class(client, project, model):
+def test_one_attackstep_ttc_tag(client, project):
     tuning = client.tunings.create_tuning(
         project,
-        model,
         tuning_type="ttc",
         op="apply",
-        filterdict={"metaconcept": "EC2Instance", "attackstep": "HighPrivilegeAccess"},
-        name="test_one_attackstep_ttc_class",
+        filterdict={
+            "attackstep": "HighPrivilegeAccess",
+            "tags": {"env": "prod"},
+        },
         ttc="Exponential,3",
     )
     verify_tuning_response(
         tuning,
         project=project,
-        scope="class",
-        id_="EC2Instance",
+        tuning_type="ttc",
+        op="apply",
+        filter_attackstep="HighPrivilegeAccess",
+        filter_tags={"env": "prod"},
         ttc="Exponential,3",
-        attackstep="HighPrivilegeAccess",
     )
 
 
-def test_one_attackstep_ttc_class_tag(client, project, model):
+def test_one_attackstep_ttc_class(client, project):
     tuning = client.tunings.create_tuning(
         project,
-        model,
+        tuning_type="ttc",
+        op="apply",
+        filterdict={
+            "metaconcept": "EC2Instance",
+            "attackstep": "HighPrivilegeAccess",
+        },
+        ttc="Exponential,3",
+    )
+    verify_tuning_response(
+        tuning,
+        project=project,
+        tuning_type="ttc",
+        op="apply",
+        filter_metaconcept="EC2Instance",
+        filter_attackstep="HighPrivilegeAccess",
+        ttc="Exponential,3",
+    )
+
+
+def test_one_attackstep_ttc_class_tag(client, project):
+    tuning = client.tunings.create_tuning(
+        project,
         tuning_type="ttc",
         op="apply",
         filterdict={
@@ -412,45 +272,45 @@ def test_one_attackstep_ttc_class_tag(client, project, model):
             "attackstep": "HighPrivilegeAccess",
             "tags": {"env": "prod"},
         },
-        name="test_one_attackstep_ttc_class",
         ttc="Exponential,3",
     )
     verify_tuning_response(
         tuning,
         project=project,
-        scope="class",
-        id_="EC2Instance",
-        ttc="Exponential,3",
-        attackstep="HighPrivilegeAccess",
-        condition={"tag": "env", "value": "prod"},
-    )
-
-
-def test_one_attackstep_ttc_object(client, project, model):
-    tuning = client.tunings.create_tuning(
-        project,
-        model,
         tuning_type="ttc",
         op="apply",
-        filterdict={"object_name": "i-1", "attackstep": "HighPrivilegeAccess"},
-        name="test_one_attackstep_ttc_object",
+        filter_metaconcept="EC2Instance",
+        filter_attackstep="HighPrivilegeAccess",
+        filter_tags={"env": "prod"},
+        ttc="Exponential,3",
+    )
+
+
+def test_one_attackstep_ttc_object(client, project):
+    tuning = client.tunings.create_tuning(
+        project,
+        tuning_type="ttc",
+        op="apply",
+        filterdict={
+            "object_name": "i-1",
+            "attackstep": "HighPrivilegeAccess",
+        },
         ttc="Exponential,3",
     )
     verify_tuning_response(
         tuning,
         project=project,
-        scope="object",
-        name="i-1",
+        tuning_type="ttc",
+        op="apply",
+        filter_object_name="i-1",
+        filter_attackstep="HighPrivilegeAccess",
         ttc="Exponential,3",
-        id_=152,
-        attackstep="HighPrivilegeAccess",
     )
 
 
-def test_one_attackstep_ttc_object(client, project, model):
+def test_one_attackstep_ttc_class_object(client, project):
     tuning = client.tunings.create_tuning(
         project,
-        model,
         tuning_type="ttc",
         op="apply",
         filterdict={
@@ -458,144 +318,145 @@ def test_one_attackstep_ttc_object(client, project, model):
             "object_name": "i-1",
             "attackstep": "HighPrivilegeAccess",
         },
-        name="test_one_attackstep_ttc_object",
         ttc="Exponential,3",
     )
     verify_tuning_response(
         tuning,
         project=project,
-        scope="object",
-        name="i-1",
-        class_="EC2Instance",
+        tuning_type="ttc",
+        op="apply",
+        filter_metaconcept="EC2Instance",
+        filter_object_name="i-1",
+        filter_attackstep="HighPrivilegeAccess",
         ttc="Exponential,3",
-        id_=152,
-        attackstep="HighPrivilegeAccess",
     )
 
 
 # Defense probability
 
 
-def test_defense_probability_all(client, project, model):
+def test_defense_probability_all(client, project):
     tuning = client.tunings.create_tuning(
         project,
-        model,
         tuning_type="probability",
         op="apply",
         filterdict={},
-        name="test_defense_probability_all",
-        probability="0.5",
+        probability=0.5,
     )
     verify_tuning_response(
         tuning,
         project=project,
-        scope="any",
-        probability="0.5",
+        tuning_type="probability",
+        op="apply",
+        probability=0.5,
     )
 
 
-def test_defense_probability_all_tag(client, project, model):
+def test_defense_probability_all_tag(client, project):
     tuning = client.tunings.create_tuning(
         project,
-        model,
         tuning_type="probability",
         op="apply",
         filterdict={"tags": {"env": "prod"}},
-        name="test_defense_probability_class",
-        probability="0.5",
+        probability=0.5,
     )
     verify_tuning_response(
         tuning,
         project=project,
-        scope="any",
-        probability="0.5",
-        condition={"tag": "env", "value": "prod"},
-    )
-
-
-def test_defense_probability_tag_one_defense(client, project, model):
-    tuning = client.tunings.create_tuning(
-        project,
-        model,
         tuning_type="probability",
         op="apply",
-        filterdict={"defense": "Patched", "tags": {"env": "prod"}},
-        name="test_defense_probability_class",
-        probability="0.5",
+        filter_tags={"env": "prod"},
+        probability=0.5,
+    )
+
+
+def test_defense_probability_tag_one_defense(client, project):
+    tuning = client.tunings.create_tuning(
+        project,
+        tuning_type="probability",
+        op="apply",
+        filterdict={
+            "defense": "Patched",
+            "tags": {"env": "prod"},
+        },
+        probability=0.5,
     )
     verify_tuning_response(
         tuning,
         project=project,
-        scope="any",
-        defense="Patched",
-        probability="0.5",
-        condition={"tag": "env", "value": "prod"},
+        tuning_type="probability",
+        op="apply",
+        filter_defense="Patched",
+        filter_tags={"env": "prod"},
+        probability=0.5,
     )
 
 
-def test_defense_probability_class_all_defense(client, project, model):
+def test_defense_probability_class_all_defense(client, project):
     tuning = client.tunings.create_tuning(
         project,
-        model,
         tuning_type="probability",
         op="apply",
         filterdict={"metaconcept": "EC2Instance"},
-        name="test_defense_probability_class",
-        probability="0.5",
+        probability=0.5,
     )
     verify_tuning_response(
         tuning,
         project=project,
-        id_="EC2Instance",
-        scope="class",
-        probability="0.5",
-    )
-
-
-def test_defense_probability_class_one_defense(client, project, model):
-    tuning = client.tunings.create_tuning(
-        project,
-        model,
         tuning_type="probability",
         op="apply",
-        filterdict={"metaconcept": "EC2Instance", "defense": "Patched"},
-        name="test_defense_probability_class",
-        probability="0.5",
-    )
-    verify_tuning_response(
-        tuning,
-        project=project,
-        id_="EC2Instance",
-        scope="class",
-        probability="0.5",
-        defense="Patched",
+        filter_metaconcept="EC2Instance",
+        probability=0.5,
     )
 
 
-def test_defense_probability_class_tag_all_defense(client, project, model):
+def test_defense_probability_class_one_defense(client, project):
     tuning = client.tunings.create_tuning(
         project,
-        model,
         tuning_type="probability",
         op="apply",
-        filterdict={"metaconcept": "EC2Instance", "tags": {"env": "prod"}},
-        name="test_defense_probability_class",
-        probability="0.5",
+        filterdict={
+            "metaconcept": "EC2Instance",
+            "defense": "Patched",
+        },
+        probability=0.5,
     )
     verify_tuning_response(
         tuning,
         project=project,
-        id_="EC2Instance",
-        scope="class",
-        probability="0.5",
-        condition={"tag": "env", "value": "prod"},
+        tuning_type="probability",
+        op="apply",
+        filter_metaconcept="EC2Instance",
+        filter_defense="Patched",
+        probability=0.5,
     )
 
 
-def test_defense_probability_class_tag_one_defense(client, project, model):
+def test_defense_probability_class_tag_all_defense(client, project):
     tuning = client.tunings.create_tuning(
         project,
-        model,
+        tuning_type="probability",
+        op="apply",
+        filterdict={
+            "metaconcept": "EC2Instance",
+            "tags": {"env": "prod"},
+        },
+        probability=0.5,
+    )
+    verify_tuning_response(
+        tuning,
+        project=project,
+        tuning_type="probability",
+        op="apply",
+        filter_metaconcept="EC2Instance",
+        filter_tags={"env": "prod"},
+        probability=0.5,
+    )
+
+
+def test_defense_probability_class_tag_one_defense(client, project):
+    tuning = client.tunings.create_tuning(
+        project,
         tuning_type="probability",
         op="apply",
         filterdict={
@@ -603,86 +464,85 @@ def test_defense_probability_class_tag_one_defense(client, project, model):
             "defense": "Patched",
             "tags": {"env": "prod"},
         },
-        name="test_defense_probability_class",
-        probability="0.5",
+        probability=0.5,
     )
     verify_tuning_response(
         tuning,
         project=project,
-        id_="EC2Instance",
-        scope="class",
-        probability="0.5",
-        defense="Patched",
-        condition={"tag": "env", "value": "prod"},
+        tuning_type="probability",
+        op="apply",
+        filter_metaconcept="EC2Instance",
+        filter_defense="Patched",
+        filter_tags={"env": "prod"},
+        probability=0.5,
     )
 
 
-def test_defense_probability_object_all_defense(client, project, model):
+def test_defense_probability_object_all_defense(client, project):
     tuning = client.tunings.create_tuning(
         project,
-        model,
         tuning_type="probability",
         op="apply",
         filterdict={"object_name": "i-1"},
-        name="test_defense_probability_class",
-        probability="0.5",
+        probability=0.5,
     )
     verify_tuning_response(
         tuning,
         project=project,
-        name="i-1",
-        scope="object",
-        probability="0.5",
-        id_=152,
-    )
-
-
-def test_defense_probability_object_one_defense(client, project, model):
-    tuning = client.tunings.create_tuning(
-        project,
-        model,
         tuning_type="probability",
         op="apply",
-        filterdict={"defense": "Patched", "object_name": "i-1"},
-        name="test_defense_probability_class",
-        probability="0.5",
-    )
-    verify_tuning_response(
-        tuning,
-        project=project,
-        name="i-1",
-        scope="object",
-        probability="0.5",
-        defense="Patched",
-        id_=152,
+        filter_object_name="i-1",
+        probability=0.5,
     )
 
 
-def test_defense_probability_class_object_all_defense(client, project, model):
+def test_defense_probability_object_one_defense(client, project):
     tuning = client.tunings.create_tuning(
         project,
-        model,
         tuning_type="probability",
         op="apply",
-        filterdict={"metaconcept": "EC2Instance", "object_name": "i-1"},
-        name="test_defense_probability_class",
-        probability="0.5",
+        filterdict={
+            "defense": "Patched",
+            "object_name": "i-1",
+        },
+        probability=0.5,
     )
     verify_tuning_response(
         tuning,
         project=project,
-        class_="EC2Instance",
-        name="i-1",
-        scope="object",
-        probability="0.5",
-        id_=152,
+        tuning_type="probability",
+        op="apply",
+        filter_object_name="i-1",
+        filter_defense="Patched",
+        probability=0.5,
     )
 
 
-def test_defense_probability_class_object_one_defense(client, project, model):
+def test_defense_probability_class_object_all_defense(client, project):
     tuning = client.tunings.create_tuning(
         project,
-        model,
+        tuning_type="probability",
+        op="apply",
+        filterdict={
+            "metaconcept": "EC2Instance",
+            "object_name": "i-1",
+        },
+        probability=0.5,
+    )
+    verify_tuning_response(
+        tuning,
+        project=project,
+        tuning_type="probability",
+        op="apply",
+        filter_metaconcept="EC2Instance",
+        filter_object_name="i-1",
+        probability=0.5,
+    )
+
+
+def test_defense_probability_class_object_one_defense(client, project):
+    tuning = client.tunings.create_tuning(
+        project,
         tuning_type="probability",
         op="apply",
         filterdict={
@@ -690,170 +550,300 @@ def test_defense_probability_class_object_one_defense(client, project, model):
             "defense": "Patched",
             "object_name": "i-1",
         },
-        name="test_defense_probability_class",
-        probability="0.5",
+        probability=0.5,
     )
     verify_tuning_response(
         tuning,
         project=project,
-        class_="EC2Instance",
-        name="i-1",
-        scope="object",
-        probability="0.5",
-        defense="Patched",
-        id_=152,
+        tuning_type="probability",
+        op="apply",
+        filter_metaconcept="EC2Instance",
+        filter_object_name="i-1",
+        filter_defense="Patched",
+        probability=0.5,
     )
 
 
 # Set tags
 
 
-def test_tag_all(client, project, model):
+def test_tag_all(client, project):
     tuning = client.tunings.create_tuning(
         project,
-        model,
         tuning_type="tag",
         op="apply",
         filterdict={},
-        name="test_defense_probability_class",
         tags={"a": "b"},
     )
     verify_tuning_response(
         tuning,
         project=project,
-        scope="any",
-        tag="a",
-        value="b",
+        tuning_type="tag",
+        op="apply",
+        tags={"a": "b"},
     )
 
 
-def test_tag_all_tag(client, project, model):
+def test_tag_all_tag(client, project):
     tuning = client.tunings.create_tuning(
         project,
-        model,
         tuning_type="tag",
         op="apply",
         filterdict={"tags": {"env": "prod"}},
-        name="test_defense_probability_class",
         tags={"a": "b"},
     )
     verify_tuning_response(
         tuning,
         project=project,
-        scope="any",
-        tag="a",
-        value="b",
-        condition={"tag": "env", "value": "prod"},
+        tuning_type="tag",
+        op="apply",
+        filter_tags={"env": "prod"},
+        tags={"a": "b"},
     )
 
 
-def test_tag_class(client, project, model):
+def test_tag_class(client, project):
     tuning = client.tunings.create_tuning(
         project,
-        model,
         tuning_type="tag",
         op="apply",
         filterdict={"metaconcept": "EC2Instance"},
-        name="test_defense_probability_class",
         tags={"a": "b"},
     )
     verify_tuning_response(
         tuning,
         project=project,
-        id_="EC2Instance",
-        scope="class",
-        tag="a",
-        value="b",
-    )
-
-
-def test_tag_class_tag(client, project, model):
-    tuning = client.tunings.create_tuning(
-        project,
-        model,
         tuning_type="tag",
         op="apply",
-        filterdict={"metaconcept": "EC2Instance", "tags": {"env": "prod"}},
-        name="test_defense_probability_class",
+        filter_metaconcept="EC2Instance",
+        tags={"a": "b"},
+    )
+
+
+def test_tag_class_tag(client, project):
+    tuning = client.tunings.create_tuning(
+        project,
+        tuning_type="tag",
+        op="apply",
+        filterdict={
+            "metaconcept": "EC2Instance",
+            "tags": {"env": "prod"},
+        },
         tags={"a": "b"},
     )
     verify_tuning_response(
         tuning,
         project=project,
-        id_="EC2Instance",
-        scope="class",
-        tag="a",
-        value="b",
-        condition={"tag": "env", "value": "prod"},
+        tuning_type="tag",
+        op="apply",
+        filter_metaconcept="EC2Instance",
+        filter_tags={"env": "prod"},
+        tags={"a": "b"},
     )
 
 
-def test_tag_object(client, project, model):
+def test_tag_object(client, project):
     tuning = client.tunings.create_tuning(
         project,
-        model,
         tuning_type="tag",
         op="apply",
         filterdict={"object_name": "i-1"},
-        name="test_defense_probability_object",
         tags={"a": "b"},
     )
     verify_tuning_response(
         tuning,
         project=project,
-        name="i-1",
-        id_=152,
-        scope="object",
-        tag="a",
-        value="b",
+        tuning_type="tag",
+        op="apply",
+        filter_object_name="i-1",
+        tags={"a": "b"},
     )
 
 
-def test_tag_object_class(client, project, model):
+def test_tag_object_class(client, project):
     tuning = client.tunings.create_tuning(
         project,
-        model,
         tuning_type="tag",
         op="apply",
         filterdict={"metaconcept": "EC2Instance", "object_name": "i-1"},
-        name="test_defense_probability_object_class",
         tags={"a": "b"},
     )
     verify_tuning_response(
         tuning,
         project=project,
-        class_="EC2Instance",
-        id_=152,
-        name="i-1",
-        scope="object",
-        tag="a",
-        value="b",
+        tuning_type="tag",
+        op="apply",
+        filter_metaconcept="EC2Instance",
+        filter_object_name="i-1",
+        tags={"a": "b"},
     )
 
 
-def test_delete(client, project, model):
+def _get_filterdict_object(metaconcept, object_name, tags):
+    filterdict = {}
+    if metaconcept is not None:
+        filterdict["metaconcept"] = metaconcept
+    if object_name is not None:
+        filterdict["object_name"] = object_name
+    if tags is not None:
+        filterdict["tags"] = tags
+    return filterdict
+
+
+def _get_filterdict_attackstep(metaconcept, object_name, attackstep, tags):
+    filterdict = _get_filterdict_object(metaconcept, object_name, tags)
+    if attackstep is not None:
+        filterdict["attackstep"] = attackstep
+    return filterdict
+
+
+def _get_filterdict_defense(metaconcept, object_name, defense, tags):
+    filterdict = _get_filterdict_object(metaconcept, object_name, tags)
+    if defense is not None:
+        filterdict["defense"] = defense
+    return filterdict
+
+
+def test_clear_attacker(client, project):
+    for metaconcept in (None, "EC2Instance"):
+        for object_name in (None, "i-1"):
+            for attackstep in (None, "HighPrivilegeAccess"):
+                for tags in (None, {"env": "prod"}):
+                    tuning = client.tunings.create_tuning(
+                        project,
+                        tuning_type="attacker",
+                        op="clear",
+                        filterdict=_get_filterdict_attackstep(
+                            metaconcept, object_name, attackstep, tags
+                        ),
+                    )
+                    verify_tuning_response(
+                        tuning,
+                        project=project,
+                        tuning_type="attacker",
+                        op="clear",
+                        filter_metaconcept=metaconcept,
+                        filter_object_name=object_name,
+                        filter_attackstep=attackstep,
+                        filter_tags=tags,
+                    )
+
+
+def test_clear_ttc(client, project):
+    for metaconcept in (None, "EC2Instance"):
+        for object_name in (None, "i-1"):
+            for attackstep in (None, "HighPrivilegeAccess"):
+                for tags in (None, {"env": "prod"}):
+                    tuning = client.tunings.create_tuning(
+                        project,
+                        tuning_type="ttc",
+                        op="clear",
+                        filterdict=_get_filterdict_attackstep(
+                            metaconcept, object_name, attackstep, tags
+                        ),
+                    )
+                    verify_tuning_response(
+                        tuning,
+                        project=project,
+                        tuning_type="ttc",
+                        op="clear",
+                        filter_metaconcept=metaconcept,
+                        filter_object_name=object_name,
+                        filter_attackstep=attackstep,
+                        filter_tags=tags,
+                    )
+
+
+def test_clear_probability(client, project):
+    for metaconcept in (None, "EC2Instance"):
+        for object_name in (None, "i-1"):
+            for defense in (None, "Patched"):
+                for tags in (None, {"env": "prod"}):
+                    tuning = client.tunings.create_tuning(
+                        project,
+                        tuning_type="probability",
+                        op="clear",
+                        filterdict=_get_filterdict_defense(
+                            metaconcept, object_name, defense, tags
+                        ),
+                    )
+                    verify_tuning_response(
+                        tuning,
+                        project=project,
+                        tuning_type="probability",
+                        op="clear",
+                        filter_metaconcept=metaconcept,
+                        filter_object_name=object_name,
+                        filter_defense=defense,
+                        filter_tags=tags,
+                    )
+
+
+def test_clear_consequence(client, project):
+    for metaconcept in (None, "EC2Instance"):
+        for object_name in (None, "i-1"):
+            for attackstep in (None, "HighPrivilegeAccess"):
+                for tags in (None, {"env": "prod"}):
+                    tuning = client.tunings.create_tuning(
+                        project,
+                        tuning_type="consequence",
+                        op="clear",
+                        filterdict=_get_filterdict_attackstep(
+                            metaconcept, object_name, attackstep, tags
+                        ),
+                    )
+                    verify_tuning_response(
+                        tuning,
+                        project=project,
+                        tuning_type="consequence",
+                        op="clear",
+                        filter_metaconcept=metaconcept,
+                        filter_object_name=object_name,
+                        filter_attackstep=attackstep,
+                        filter_tags=tags,
+                    )
+
+
+def test_clear_tag(client, project):
+    for metaconcept in (None, "EC2Instance"):
+        for object_name in (None, "i-1"):
+            for tags in (None, {"env": "prod"}):
+                tuning = client.tunings.create_tuning(
+                    project,
+                    tuning_type="tag",
+                    op="clear",
+                    filterdict=_get_filterdict_object(metaconcept, object_name, tags),
+                )
+                verify_tuning_response(
+                    tuning,
+                    project=project,
+                    tuning_type="tag",
+                    op="clear",
+                    filter_metaconcept=metaconcept,
+                    filter_object_name=object_name,
+                    filter_tags=tags,
+                )
+
+
+def test_delete(client, project):
     tuning = client.tunings.create_tuning(
         project,
-        model,
         tuning_type="tag",
         op="apply",
         filterdict={"metaconcept": "EC2Instance", "object_name": "i-1"},
-        name="test_defense_probability_object_class",
         tags={"a": "b"},
     )
     tuning.delete()
     assert project.list_tunings() == []
 
 
-def test_list(client, project, model):
+def test_list(client, project):
     assert project.list_tunings() == []
     tuning = client.tunings.create_tuning(
         project,
-        model,
         tuning_type="tag",
         op="apply",
         filterdict={"metaconcept": "EC2Instance", "object_name": "i-1"},
-        name="test_defense_probability_object_class",
         tags={"a": "b"},
     )
     curr_tunings = project.list_tunings()
