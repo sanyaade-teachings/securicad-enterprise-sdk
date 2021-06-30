@@ -168,6 +168,10 @@
     "description": "A container instance is an EC2 instance running the container agent",
     "attacksteps": [
       {
+        "name": "AttemptHighPrivilegeAccess",
+        "description": ""
+      },
+      {
         "name": "Connect",
         "description": "The attacker can connect to the instance through e.g., a shell, but is not authenticated."
       },
@@ -186,6 +190,10 @@
       {
         "name": "ModifyUserDataScript",
         "description": "The attacker can modify the user data script and execute any code as root when the machine is started."
+      },
+      {
+        "name": "StartSSMSession",
+        "description": "The attacker can start a SSM session to the instance and execute any code on the machine."
       },
       {
         "name": "Terminate",
@@ -368,6 +376,10 @@
     "description": "A DB instance is isolated database environment in Amazon's Relational Database Service (Amazon RDS) to set up, operate, and scale a relational database in the Amazon Web Services (AWS) cloud infrastructure.",
     "attacksteps": [
       {
+        "name": "AttemptHighPrivilegeAccess",
+        "description": ""
+      },
+      {
         "name": "Connect",
         "description": "The attacker can connect to the instance, e.g., through a shell, but has not yet authenticated."
       },
@@ -486,6 +498,10 @@
     "name": "DockerContainer",
     "description": "Docker containers are an isolated computing environment in which applications are run",
     "attacksteps": [
+      {
+        "name": "AttemptHighPrivilegeAccess",
+        "description": ""
+      },
       {
         "name": "Connect",
         "description": "The attacker can connect to the instance through e.g., a shell, but is not authenticated."
@@ -741,6 +757,10 @@
     "description": "An EC2 instance is a virtual computing environment in Amazon's Elastic Compute Cloud (EC2) service for running applications on the Amazon Web Services (AWS) infrastructure.",
     "attacksteps": [
       {
+        "name": "AttemptHighPrivilegeAccess",
+        "description": ""
+      },
+      {
         "name": "Connect",
         "description": "The attacker can connect to the instance through e.g., a shell, but is not authenticated."
       },
@@ -759,6 +779,10 @@
       {
         "name": "ModifyUserDataScript",
         "description": "The attacker can modify the user data script and execute any code as root when the machine is started."
+      },
+      {
+        "name": "StartSSMSession",
+        "description": "The attacker can start a SSM session to the instance and execute any code on the machine."
       },
       {
         "name": "Terminate",
@@ -1949,6 +1973,10 @@
     "description": "A Load Balancer Instance is an Instance that hosts the Load Balancer service",
     "attacksteps": [
       {
+        "name": "AttemptHighPrivilegeAccess",
+        "description": ""
+      },
+      {
         "name": "Connect",
         "description": "The attacker can connect to the instance, e.g., through a shell, but has not yet authenticated."
       },
@@ -2604,6 +2632,16 @@
     ]
   },
   {
+    "name": "SSMStartSession",
+    "description": "Starts a SSM session to the specified instances.",
+    "attacksteps": [
+      {
+        "name": "PerformAction",
+        "description": "Starts a SSM session to the specified instances."
+      }
+    ]
+  },
+  {
     "name": "STSAssumeRole",
     "description": "Assume a role by requesting a set of temporary security credentials that you can use to access AWS resources.",
     "attacksteps": [
@@ -2877,6 +2915,10 @@
     "name": "VPCEndpointInstance",
     "description": "In AWS, a resource is an entity you can work with. Examples include an Amazon EC2 instance, an Amazon S3 bucket, etc. Concretely, a resource can be the target of a policy.",
     "attacksteps": [
+      {
+        "name": "AttemptHighPrivilegeAccess",
+        "description": ""
+      },
       {
         "name": "Connect",
         "description": "The attacker can connect to the instance, e.g., through a shell, but has not yet authenticated."
