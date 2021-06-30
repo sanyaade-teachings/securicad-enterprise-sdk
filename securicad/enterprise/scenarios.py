@@ -117,15 +117,17 @@ class Scenarios:
         name: str,
         description: Optional[str] = None,
         tunings: Optional[List["Tuning"]] = None,
+        raw_tunings: Optional[List[dict]] = None,
     ) -> Scenario:
-        if tunings is None:
-            tunings = []
         data: Dict[str, Any] = {
             "pid": project.pid,
             "mid": model_info.mid,
             "name": name,
             "description": "" if description is None else description,
-            "cids": [t.tuning_id for t in tunings],
         }
+        if tunings is not None:
+            data["cids"] = [t.tuning_id for t in tunings]
+        if raw_tunings is not None:
+            data["tunings"] = raw_tunings
         dict_scenario = self.client._put("scenario", data)
         return Scenario.from_dict(client=self.client, dict_scenario=dict_scenario)

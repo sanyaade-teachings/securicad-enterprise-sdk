@@ -6,9 +6,11 @@ A Python SDK for [foreseeti's securiCAD Enterprise](https://foreseeti.com/securi
 
 The appropriate version of securiCAD Enterprise SDK will vary depending on your version of securiCAD Enterprise. To see your version of securiCAD Enterprise you can look at the login screen where it's shown.
 
-If you're running securiCAD Enterprise 1.10.3 or older you will need to use version 0.2.0 of the SDK.
-
-If you're running securiCAD Enterprise 1.11.0 or newer you will need to use version 0.3.0 of the SDK.
+securiCAD Enterprise | SDK
+---------------------|-----
+<= 1.10.3 | 0.2.0
+   1.11.0| 0.3.0
+\>= 1.11.1 |0.3.1
 
 ## Getting started
 

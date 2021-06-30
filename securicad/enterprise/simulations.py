@@ -108,14 +108,16 @@ class Simulations:
         name: Optional[str] = None,
         model: Optional["Model"] = None,
         tunings: Optional[List["Tuning"]] = None,
+        raw_tunings: Optional[List[dict]] = None,
     ) -> Simulation:
-        if tunings is None:
-            tunings = []
         data: Dict[str, Any] = {"pid": scenario.pid, "tid": scenario.tid}
         if name is not None:
             data["name"] = name
         if model is not None:
             data["blob"] = model.model
-        data["cids"] = [t.tuning_id for t in tunings]
+        if tunings is not None:
+            data["cids"] = [t.tuning_id for t in tunings]
+        if raw_tunings is not None:
+            data["tunings"] = raw_tunings
         response = self.client._put("simulation", data)
         return self.get_simulation_by_simid(scenario, response["simid"])
