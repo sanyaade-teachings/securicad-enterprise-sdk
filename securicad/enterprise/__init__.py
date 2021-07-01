@@ -18,6 +18,7 @@ from securicad.enterprise.organizations import Organization
 from securicad.enterprise.projects import AccessLevel, Project
 from securicad.enterprise.scenarios import Scenario
 from securicad.enterprise.simulations import Simulation
+from securicad.enterprise.tunings import Tuning
 from securicad.enterprise.users import Role, User
 
 __version__ = "0.3.1"
