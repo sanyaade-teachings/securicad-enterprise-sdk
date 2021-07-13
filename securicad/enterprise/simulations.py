@@ -34,6 +34,7 @@ class Simulation:
         self.simid = simid
         self.name = name
         self.progress = progress
+        self.result: Optional[dict] = None
 
     @staticmethod
     def from_dict(client: "Client", dict_simulation: Dict[str, Any]) -> "Simulation":
@@ -73,7 +74,41 @@ class Simulation:
             self.client._base_url,
             f"project/{self.pid}/scenario/{self.tid}/report/{self.simid}",
         )
+        self.result = result
         return result
+
+    def get_critical_paths(self, hvas: List[str] = None) -> Dict[str, Dict[str, Any]]:
+        """
+        Returns some or all critial paths for this simulation.
+
+        Parameters:
+            hvas: A list of strings on the form "<object_id>.<attackstep>", e.g. "1.Compromise".
+                  If hvas is None all critical paths are returned.
+
+        Returns:
+            A dict of the form data["1.Compromise"] = { critical path }
+        """
+        if not self.result:
+            self.get_results()
+
+        if hvas is None:
+            if not self.result:
+                raise ValueError(
+                    "No result stored, unable to retrieve high value assets, please specify"
+                )
+            hvas = []
+            for risk in self.result["results"]["risks"]:
+                hvas.append(risk["attackstep_id"])
+
+        attackpaths = {}
+        for hva in hvas:
+            data = {
+                "simid": self.simid,
+                "attackstep": hva,
+            }
+            resp = self.client._post("simulation/attackpath", data)
+            attackpaths[hva] = resp["data"]
+        return attackpaths
 
 
 class Simulations:
