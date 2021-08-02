@@ -30,6 +30,13 @@ from securicad.enterprise.exceptions import StatusCodeException
 def test_get_metadata(data, awslang):
     def assert_get_metadata(client):
         metalist = client.metadata.get_metadata()
+
+        # uncommment this to serialize new test input data
+        # with open("newlang.json", mode='w') as writer:
+        #     from securicad.enterprise.metadata import RiskTypeJsonEncoder
+        #     import json
+        #     json.dump(fp=writer, obj=metalist, indent=2, cls=RiskTypeJsonEncoder)
+
         expected_len = len(awslang)
         actual_len = len(metalist)
         assert (

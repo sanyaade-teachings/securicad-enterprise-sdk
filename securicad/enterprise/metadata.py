@@ -12,10 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
+from enum import Enum, auto
 from typing import TYPE_CHECKING, Any, Dict, List
 
 if TYPE_CHECKING:
     from securicad.enterprise.client import Client
+
+
+class RiskType(Enum):
+    Availability = auto()
+    Confidentiality = auto()
+    Integrity = auto()
+
+
+class RiskTypeJsonEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, RiskType):
+            return o.name
+        else:
+            return o
 
 
 class Metadata:
@@ -23,6 +39,18 @@ class Metadata:
         self.client = client
 
     def get_metadata(self) -> List[Dict[str, Any]]:
+        def parse_risktype(attackstep):
+            if "riskType" not in attackstep:
+                return []
+            retr = []
+            if "Availability" in attackstep["riskType"]:
+                retr.append(RiskType.Availability)
+            if "Confidentiality" in attackstep["riskType"]:
+                retr.append(RiskType.Confidentiality)
+            if "Integrity" in attackstep["riskType"]:
+                retr.append(RiskType.Integrity)
+            return retr
+
         metadata = self.client._get("metadata")
         metalist = []
         for asset, data in metadata["assets"].items():
@@ -32,6 +60,7 @@ class Metadata:
                     {
                         "name": attackstep["name"],
                         "description": attackstep["description"],
+                        "risktype": parse_risktype(attackstep),
                     }
                 )
             metalist.append(
