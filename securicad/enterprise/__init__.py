@@ -21,7 +21,7 @@ from securicad.enterprise.simulations import Simulation
 from securicad.enterprise.tunings import Tuning
 from securicad.enterprise.users import Role, User
 
-__version__ = "0.3.1"
+__version__ = "0.3.2"
 
 
 def client(*args, **kwargs) -> Client:

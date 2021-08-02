@@ -21,17 +21,16 @@ if TYPE_CHECKING:
 
 
 class RiskType(Enum):
-    Availability = auto()
-    Confidentiality = auto()
-    Integrity = auto()
+    AVAILABILITY = auto()
+    CONFIDENTIALITY = auto()
+    INTEGRITY = auto()
 
 
 class RiskTypeJsonEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, RiskType):
             return o.name
-        else:
-            return o
+        return super().default(o)
 
 
 class Metadata:
@@ -44,11 +43,11 @@ class Metadata:
                 return []
             retr = []
             if "Availability" in attackstep["riskType"]:
-                retr.append(RiskType.Availability)
+                retr.append(RiskType.AVAILABILITY)
             if "Confidentiality" in attackstep["riskType"]:
-                retr.append(RiskType.Confidentiality)
+                retr.append(RiskType.CONFIDENTIALITY)
             if "Integrity" in attackstep["riskType"]:
-                retr.append(RiskType.Integrity)
+                retr.append(RiskType.INTEGRITY)
             return retr
 
         metadata = self.client._get("metadata")
