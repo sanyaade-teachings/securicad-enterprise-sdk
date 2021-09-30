@@ -26,23 +26,7 @@ from securicad.enterprise.exceptions import StatusCodeException
 
 # isort: on
 
-PARSERS = [
-    {
-        "name": "aws-parser",
-        "sub_parsers": [
-            "aws-cli-parser",
-            "aws-vul-parser",
-        ],
-    },
-    {
-        "name": "nmap",
-        "sub_parsers": None,
-    },
-    {
-        "name": "scad",
-        "sub_parsers": None,
-    },
-]
+PARSERS = [{"name": "aws-parser", "sub_parsers": ["aws-cli-parser", "aws-vul-parser"]}]
 
 
 def test_list_parsers(data):

@@ -96,7 +96,7 @@ def test_change_password(data):
             client.users.change_password(old_password, new_password)
         utils.assert_status_code_exception(
             exception=e.value,
-            status_code=500,
+            status_code=400,
             method="POST",
             url=utils.get_url("changepwd"),
             data={"error": "Unable to update password: Old password does not match."},

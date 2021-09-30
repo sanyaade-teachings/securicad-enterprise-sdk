@@ -6,7 +6,7 @@
 #
 certifi==2021.5.30
     # via requests
-charset-normalizer==2.0.4
+charset-normalizer==2.0.6
     # via requests
 idna==3.2
     # via requests
@@ -14,5 +14,5 @@ requests==2.26.0
     # via securicad-enterprise (setup.cfg)
 securicad-model==0.0.2
     # via securicad-enterprise (setup.cfg)
-urllib3==1.26.6
+urllib3==1.26.7
     # via requests

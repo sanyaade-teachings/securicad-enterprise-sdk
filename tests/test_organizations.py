@@ -219,7 +219,7 @@ def test_create_org(data):
             status_code=400,
             method="PUT",
             url=utils.get_url("organization"),
-            data={"error": "Organization exists"},
+            data={"error": f"Organization {name} already exists"},
         )
 
     def assert_create_org_fails(client, name):
@@ -279,18 +279,18 @@ def test_org_update(data):
         org = client.organizations.get_organization_by_tag(tag)
         utils.assert_org_data(org, {"tag": tag, "name": new_name})
 
-    def assert_org_update_invalid(org, new_name):
+    def assert_org_update_fails_exists(org, new_name):
         with pytest.raises(StatusCodeException) as e:
             org.update(name=new_name)
         utils.assert_status_code_exception(
             exception=e.value,
-            status_code=503,
+            status_code=400,
             method="POST",
             url=utils.get_url("organization"),
-            data={"error": "Failed to update organization"},
+            data={"error": f"Organization {new_name} already exists"},
         )
 
-    def assert_org_update_fails(org, new_name):
+    def assert_org_update_fails_missing_auth(org, new_name):
         with pytest.raises(StatusCodeException) as e:
             org.update(name=new_name)
         utils.assert_status_code_exception(
@@ -301,7 +301,18 @@ def test_org_update(data):
             data={"msg": "Missing Authorization Header"},
         )
 
-    def assert_org_update_forbidden(org, new_name):
+    def assert_org_update_fails_invalid_org(org, new_name):
+        with pytest.raises(StatusCodeException) as e:
+            org.update(name=new_name)
+        utils.assert_status_code_exception(
+            exception=e.value,
+            status_code=500,
+            method="POST",
+            url=utils.get_url("organization"),
+            data={"error": "Failed to update organization"},
+        )
+
+    def assert_org_update_fails_forbidden(org, new_name):
         with pytest.raises(StatusCodeException) as e:
             org.update(name=new_name)
         utils.assert_status_code_exception(
@@ -321,10 +332,7 @@ def test_org_update(data):
             assert_org_update(client, org["tag"], org["name"], "org3")
             assert_org_update(client, org["tag"], "org3", org["name"])
             for org_name in data["organizations"]:
-                if org_name == org["name"]:
-                    assert_org_update(client, org["tag"], org["name"], org_name)
-                else:
-                    assert_org_update_invalid(org_, org_name)
+                assert_org_update_fails_exists(org_, org_name)
         client.logout()
 
     for org_data in data["organizations"].values():
@@ -334,21 +342,21 @@ def test_org_update(data):
             )
             for org in data["organizations"].values():
                 org_ = Organization(client, org["tag"], org["name"])
-                assert_org_update_forbidden(org_, "org3")
+                assert_org_update_fails_forbidden(org_, "org3")
                 for org_name in data["organizations"]:
-                    assert_org_update_forbidden(org_, org_name)
+                    assert_org_update_fails_forbidden(org_, org_name)
             client.logout()
 
     client = utils.get_client_sysadmin()
     client.logout()
     for org in data["organizations"].values():
         org_ = Organization(client, org["tag"], org["name"])
-        assert_org_update_fails(org_, "org3")
+        assert_org_update_fails_missing_auth(org_, "org3")
 
     client = utils.get_client_sysadmin()
     org_ = client.organizations.create_organization("org3")
     org_.delete()
-    assert_org_update_invalid(org_, "org4")
+    assert_org_update_fails_invalid_org(org_, "org4")
     client.logout()
 
 

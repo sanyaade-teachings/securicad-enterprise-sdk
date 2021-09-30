@@ -17,6 +17,7 @@ create_venv() {
 
 run_coverage() {
   coverage run --branch --source securicad.enterprise -m pytest -vx
+  coverage html
 }
 
 main() {

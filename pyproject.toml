@@ -24,3 +24,7 @@ disable = "C0330, C0326, W0212, R0902, R0903, R0913"
 [tool.pylint.format]
 max-line-length = "88"
 good-names = "e, f, op"
+
+[tool.pyright]
+pythonVersion = "3.8"
+typeCheckingMode = "strict"
