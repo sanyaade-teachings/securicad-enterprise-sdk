@@ -124,9 +124,9 @@ class Tunings:
             return tuning
 
         if tuning_type not in ["attacker", "tag", "ttc", "probability", "consequence"]:
-            raise ValueError(f"Unknown {tuning_type=}")
+            raise ValueError(f"Unknown tuning_type {tuning_type}")
         if op not in ["apply", "clear"]:
-            raise ValueError(f"Unknown {op=}")
+            raise ValueError(f"Unknown op {op}")
         data = {"pid": project.pid, "tunings": [get_tuning()]}
         dict_tuning = self.client._put("tunings", data)[0]
         return Tuning.from_dict(
