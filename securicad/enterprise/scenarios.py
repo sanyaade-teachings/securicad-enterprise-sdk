@@ -118,12 +118,14 @@ class Scenarios:
         description: Optional[str] = None,
         tunings: Optional[List["Tuning"]] = None,
         raw_tunings: Optional[List[dict]] = None,
+        filter_results: Optional[bool] = False,
     ) -> Scenario:
         data: Dict[str, Any] = {
             "pid": project.pid,
             "mid": model_info.mid,
             "name": name,
             "description": "" if description is None else description,
+            "filter_results": filter_results,
         }
         if tunings is not None:
             data["cids"] = [t.tuning_id for t in tunings]

@@ -77,6 +77,19 @@ class Simulation:
         self.result = result
         return result
 
+    def get_raw_results(self) -> Dict[str, Any]:
+        def cleanup(result):  # because of our not quite csv format
+            lines = result.split("\n")
+            if lines[2].startswith('"samplecount=') and lines[3].startswith('"build='):
+                return "\n".join(lines[4:])
+            return result
+
+        self.__wait_for_results()
+        data: Dict[str, Any] = {"pid": self.pid, "simid": self.simid}
+        result = self.client._post("simulation/raw_data", data)
+        self.raw_result = cleanup(result["csv_data"])
+        return self.raw_result
+
     def get_critical_paths(self, hvas: List[str] = None) -> Dict[str, Dict[str, Any]]:
         """
         Returns some or all critial paths for this simulation.
@@ -144,8 +157,13 @@ class Simulations:
         model: Optional["Model"] = None,
         tunings: Optional[List["Tuning"]] = None,
         raw_tunings: Optional[List[dict]] = None,
+        filter_results: bool = False,
     ) -> Simulation:
-        data: Dict[str, Any] = {"pid": scenario.pid, "tid": scenario.tid}
+        data: Dict[str, Any] = {
+            "pid": scenario.pid,
+            "tid": scenario.tid,
+            "filter_results": filter_results,
+        }
         if name is not None:
             data["name"] = name
         if model is not None:
