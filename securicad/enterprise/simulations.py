@@ -157,7 +157,7 @@ class Simulations:
         model: Optional["Model"] = None,
         tunings: Optional[List["Tuning"]] = None,
         raw_tunings: Optional[List[dict]] = None,
-        filter_results: bool = False,
+        filter_results: bool = True,
     ) -> Simulation:
         data: Dict[str, Any] = {
             "pid": scenario.pid,

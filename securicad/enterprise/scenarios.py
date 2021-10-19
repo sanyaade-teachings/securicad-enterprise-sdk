@@ -118,7 +118,7 @@ class Scenarios:
         description: Optional[str] = None,
         tunings: Optional[List["Tuning"]] = None,
         raw_tunings: Optional[List[dict]] = None,
-        filter_results: Optional[bool] = False,
+        filter_results: bool = True,
     ) -> Scenario:
         data: Dict[str, Any] = {
             "pid": project.pid,
