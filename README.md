@@ -33,7 +33,7 @@ git clone https://github.com/foreseeti/securicad-enterprise-sdk.git
 To use the Enterprise SDK for AWS-based environments, the SDK requires AWS credentials to be able to fetch the data.
 The easiest way is to create an IAM User with the required permissions and generate access keys for that IAM User:
 
-* [Create an IAM user](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html) with this [IAM policy](https://vanguard.securicad.com/iam_policy.json)
+* [Create an IAM user](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html) with this [IAM policy](https://raw.githubusercontent.com/foreseeti/securicad-aws-collector/master/iam_policy.json)
 * [Generate access keys](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html) for the IAM user
 
 ### Run your first AWS simulation
