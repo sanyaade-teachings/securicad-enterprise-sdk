@@ -8,9 +8,10 @@ The appropriate version of securiCAD Enterprise SDK will vary depending on your 
 
 securiCAD Enterprise | SDK
 ---------------------|-----
-<= 1.10.3 | 0.2.0
-   1.11.0| 0.3.0
-\>= 1.11.1 |0.3.1
+<= 1.10.3            | 0.2.0
+   1.11.0            | 0.3.0
+\>= 1.11.1, < 1.12.0 | 0.3.1
+\>= 1.12.0           | 0.3.3
 
 ## Getting started
 
@@ -486,64 +487,191 @@ tag = resp.json()["response"]["tag"]
 
 ```
 
-## Examples
+## Simulation result data formats
+The JSON format of the simulation results from `simulation.get_results()` and the webhooks are described below. The examples are truncated but provides an example for each object type.
 
-Below are a few examples of how you can use `boto3` to automatically collect name or ids for your high value assets.
+### Overview
+The simulations results from the SDK and the webhooks are very similar and their respective overall formats are described first with their mututal objects detailed after.
 
-### Get EC2 instance ids
+#### Simulation results
+The simulation report format used by securiCAD and the JSON blob that is returned by the SDK.
 
-Get all EC2 instance ids where the instance is running and has the tag `owner` with value `erik`.
+```json
+{
+    "simid": "187894052202290",
+    "report_url": "https://mydomain.com/project/749432228616411/scenario/265400114917031/report/138174299751445",
+    "results": {...},
+    "model_data": {...},
+    "threat_summary": [...],
+    "chokepoints": [...],
+    "attacker": {...}
+}
+```
+* `simid`: The simulation id
+* `report_url`: Complete URL to the simulation report in the UI
+* `attacker`: Information about the Attacker object in the simulation
 
-```python
-import boto3
+#### Webhooks
+```json
+{
+    "meta": {...},
+    "results": {...},
+    "model": {...},
+    "threat_summary": [...],
+    "chokepoints": [...],
+}
+```
+* `meta`: Metadata from the simulation including report url, project, scenario and simulation data.
 
-session = boto3.Session()
-ec2 = session.resource('ec2')
+### Examples
 
-# List all running EC2 instances with the owner-tag erik
-instances = ec2.instances.filter(
-    Filters=[
-        {"Name": "tag:owner", "Values": ["erik"]},
-        {'Name': 'instance-state-name', 'Values': ['running']}
+#### `results`
+The `results` object provides the high level values for risk exposure as well as the TTCs for each high value asset in the list `risks`. `maxrisk` is simply the sum of all `consequence` of the high value asset and `risk` is the "amount" of consequence the attacker is able to compromise. The `ttcX` values is the TTC for each procentile and the `values` list contains the TTC for each sample (sorted and truncated).
+
+```json
+"results": {
+    "date": "2021-11-11 10:20:46.099477",
+    "confidentiality": 0.52,
+    "integrity": 0.51,
+    "availability": 0.52,
+    "risk": 56.2,
+    "maxrisk": 105.0,
+    "risks": [
+        {
+            "metaconcept": "S3Bucket",
+            "object_id": "1432",
+            "object_name": "customer-records-demo",
+            "attackstep": "ReadObject",
+            "ttc5": "0",
+            "ttc50": "1",
+            "ttc95": "3",
+            "probability": "1.0",
+            "consequence": "7",
+            "values": [
+                0.02,
+                1.58,
+                2.68,
+                4.1,
+                5.55
+            ],
+            "attackstep_id": "1432.ReadObject"
+        },
+    ],
+},
+```
+#### `model/model_data`
+The `model` or `model_data` object contains a JSON representation of your complete model including every object keyed on its id in `objects` and each association in the list `associations` where `id1` and `id2` are references to object ids.
+
+```json
+"model_data": {
+    "formatversion": 1,
+    "mid": "187894052202290",
+    "name": "This is my model",
+    "samples": 1000,
+    "threshold": 100,
+    "metadata": {...},
+    "tags": {...},
+    "objects": {
+        "570623112508326": {
+            "name": "Bastion subnet",
+            "eid": 1499,
+            "metaconcept": "Subnet",
+            "tags": {
+                "workload": "demo",
+                "Name": "Bastion subnet"
+            },
+            "attacksteps": [...],
+            "defenses": [...]
+        },
+    },
+    "associations": [
+        {
+            "id1": "190813838598594",
+            "id2": "167878158543587",
+            "link": "SubnetRouteTable",
+            "type1": "subnets",
+            "type2": "routeTable"
+        },
+    ],
+    "groups": {...},
+    "views": [...]
+}
+
+```
+#### `threat_summary`
+The `threat_summary` is a list of top attack steps used by the attacker including suggested mitigations in `defenses`. Each object in the list contains information about the attack step, which high value assets it affects in `hva_list` as well as metadata such as `mitre` and `stride`. `object` is a reference to a model id in `model["objects"]`
+
+```json
+"threat_summary": [
+        {
+            "attackstep": "GetRoleCredentials",
+            "count": 2,
+            "hva_list": [
+                "1609.ReadDatabase",
+            ],
+            "object": "915990772612637",
+            "user": "The attacker can get access to the set of permissions that the attached instance profile or role has.",
+            "stride": "Information Disclosure",
+            "mitre": "T1552.005 Unsecured Credentials: Cloud Instance Metadata API",
+            "mitigation": "Follow the standard security advice of granting least privilege and consider using GuardDuty which triggers on this. See https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_finding-types.html#unauthorized11",
+            "defense": [
+                {
+                    "prevention": "IMDSv2",
+                    "description": "Require the use of IMDSv2 when requesting instance metadata",
+                    "name": "IMDSv2",
+                    "disabled": "No session authentication",
+                    "mitigation": "Require the use of IMDSv2 when requesting instance metadata. For more information, see https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html"
+                }
+            ]
+        },
+        {...}
+]
+```
+#### `chokepoints`
+This is data used for the chokepoints in the report. It denotes the objects in the chokepoint visualization with `parentID` and `childID` which is references to an object's `eid` found in `model["objects"]`. The `targets` list denotes which high value asset it affects.
+
+```json
+"chokepoints": [
+    {
+        "parentID": 734,
+        "parentName": "Attacker",
+        "childID": 740,
+        "targets": [
+            "1623",
+            "1615"
+        ],
+        "childName": "Attacker Interface",
+        "frequency": 1,
+        "type": "default"
+    },
+    {...}
+]
+```
+
+#### `meta`
+This is metadata about a simulation result returned by the webhook. The `report_url` is a deep link to the report excluding your IP/domain. To use the URL externally, prepend your domain name to the url e.g., `https://mydomain.com/project/749432228616411/scenario/265400114917031/report/138174299751445`
+```json
+"meta": {
+    "project": {
+        "name": "My project",
+        "description": "This is my project",
+        "id": "749432228616410"
+    },
+    "user": "admin",
+    "scenario": {
+        "name": "Analysing my model",
+        "description": "This is a scenario",
+        "id": "265400114917030"
+    },
+    "simulation": {
+        "name": "My first simulation",
+        "description": "",
+        "id": "138174299751450"
+    },
+    "report_url": [
+        "/project/749432228616411/scenario/265400114917031/report/138174299751445"
     ]
-)
-# Get the instance-id of each filtered instance
-instance_ids = [instance.id for instance in instances]
-```
-
-### Get RDS instance identifiers
-
-Get all RDS instances and their identifiers.
-
-```python
-import boto3
-
-session = boto3.Session()
-rds = session.client('rds')
-
-# Get all RDS instance identifers with a paginator
-dbinstances = []
-paginator = rds.get_paginator('describe_db_instances').paginate()
-for page in paginator:
-    for db in page.get('DBInstances'):
-        dbinstances.append(db['DBInstanceIdentifier'])
-```
-
-### Get S3 buckets
-
-Get all S3 buckets where the bucket name contains the string `erik`.
-
-```python
-import boto3
-
-session = boto3.Session()
-s3 = session.resource('s3')
-
-# Get all s3 buckets where `erik` is in the bucket name
-buckets = []
-for bucket in s3.buckets.all():
-    if 'erik' in bucket.name:
-        buckets.append(bucket.name)
+}
 ```
 
 ## License
