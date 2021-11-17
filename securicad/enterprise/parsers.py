@@ -72,3 +72,47 @@ class Parsers:
         return self.client.models.generate_model(
             project=project, parser="aws-parser", name=name, files=get_files()
         )
+
+    def generate_azure_model(
+        self,
+        project: "Project",
+        name: str,
+        az_active_directory_files: Optional[List[Dict[str, Any]]] = None,
+        application_insight_files: Optional[List[Dict[str, Any]]] = None,
+    ) -> "ModelInfo":
+        """Generates a model from Azure data.
+
+        :param project: The :class:`Project` to add the generated model to.
+        :param name: The name of the generated model.
+        :param az_active_directory_files: (optional) A list of azure environment data created with ``securicad-azure-collector``.
+        :param application_insight_files: (optional) A list of application insights data created with ``securicad-azure-collector``.
+        :return: A :class:`ModelInfo` object representing the generated model.
+        """
+
+        def get_file_io(dict_file: Dict[str, Any]) -> io.BytesIO:
+            file_str = json.dumps(dict_file, allow_nan=False, indent=2)
+            file_bytes = file_str.encode("utf-8")
+            return io.BytesIO(file_bytes)
+
+        def get_file(
+            sub_parser: str, name: str, dict_file: Dict[str, Any]
+        ) -> Dict[str, Any]:
+            return {
+                "sub_parser": sub_parser,
+                "name": name,
+                "file": get_file_io(dict_file),
+            }
+
+        def get_files() -> List[Dict[str, Any]]:
+            files = []
+            if az_active_directory_files is not None:
+                for aad_file in az_active_directory_files:
+                    files.append(get_file("azure-active-directory-parser", "azure_ad.json", aad_file))
+            if application_insight_files is not None:
+                for insight_file in application_insight_files:
+                    files.append(get_file("azure-application-insights-parser", "insights.json", insight_file))
+            return files
+
+        return self.client.models.generate_model(
+            project=project, parser="azure-parser", name=name, files=get_files()
+        )
