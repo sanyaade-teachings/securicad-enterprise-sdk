@@ -2,6 +2,22 @@
 
 A Python SDK for [foreseeti's securiCAD Enterprise](https://foreseeti.com/securicad-enterprise/)
 
+## Table of contents
+
+- [securiCAD Enterprise SDK](#securicad-enterprise-sdk)
+  * [Compatibility](#compatibility)
+  * [Getting started](#getting-started)
+  * [High value assets](#high-value-assets)
+  * [User management](#user-management)
+  * [Certificates](#certificates)
+  * [Tunings](#tunings)
+  * [Vulnerability data and vulnerabilities](#vulnerability-data-and-vulnerabilities)
+  * [Disable attack steps](#disable-attack-steps)
+  * [Batch scenario operations](#batch-scenario-operations)
+  * [Simulation result data formats](#simulation-result-data-formats)
+  * [Exceptions](#exceptions)
+  * [License](#license)
+
 ## Compatibility
 
 The appropriate version of securiCAD Enterprise SDK will vary depending on your version of securiCAD Enterprise. To see your version of securiCAD Enterprise you can look at the login screen where it's shown.
@@ -672,6 +688,23 @@ This is metadata about a simulation result returned by the webhook. The `report_
         "/project/749432228616411/scenario/265400114917031/report/138174299751445"
     ]
 }
+```
+## Exceptions
+
+The SDK raises two types of exceptions depending on what went wrong. `securicad.enterprise.exceptions.StatusCodeException` or the standard library exception `ValueError`.
+
+`StatusCodeException` is raised when an unexpected status code is received from enterprise. This can for example be a status code 401 on a failed login attempt.
+
+```python
+client = enterprise.client(
+    base_url=url, username=username, password=password, organization=org, cacert=cacert
+)
+```
+
+`ValueError` is raised when trying to get something that doesn't exist, e.g.
+
+```python
+model = client.models.get_model_by_name(project=p, name="doesnexist")
 ```
 
 ## License
