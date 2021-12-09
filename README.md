@@ -399,25 +399,26 @@ model_info = client.parsers.generate_aws_model(
 The expected `vuln_data` format is explained below.
 
 ### Vulnerability data format
-securiCAD Enterprise supports any type of vulnerability data by using a generic json format. The json file should be a list of `findings` that describes each finding from e.g., a vulnerability scanner. All fields are mandatory and validated, but some can be left empty. See the example below for a practical example of a finding of `CVE-2018-11776` on a specific EC2 instance. `"cve"`, `"cvss"` and `"id"` (instance-id) are always mandatory. If the application is not listening on any port, you can set `"port"` to `0`.
+securiCAD Enterprise supports any type of vulnerability data by using a generic json format. The json file should be a list of `findings` that describes each finding from e.g., a vulnerability scanner.
+
+The mandatory fields are `"application"`, `"port"`, `"cvss"` and one of the host identifiers `"host_id"`, `"host_ip"`, `"image_id"`, `"host_tags"`. The fields `"host_id"`, `"host_ip"` and `"image_id"` are strings and `"host_tags"` is a list of `{"key": <key>, "value": <value>}` objects that matches on host tags. `"name"`, `"description"`, `"cve"` and `"cwe"` are optional.
+
+See the example below for a practical example of a finding of `CVE-2018-11776` on a specific EC2 instance with instance id `"i-1a2b3c4d5e6f7"`. If the application is not listening on any port, you can set `"port"` to `0`. CVSS 2.0, 3.0 and 3.1 vectors are supported.
+
+The optional `"exploit"` parameter takes a string according to the [Exploitability (CVSS v2) or Exploit Code Maturity (CVSS v3) specification](https://www.first.org/cvss/specification-document) that will affect how much effort is required for the Attacker to exploit a vulnerability. For example: `"exploit": "H"`
 
 ```json
 {
     "findings": [
         {
-            "id": "i-1a2b3c4d5e6f7",
-            "ip": "",
-            "dns": "",
+            "host_id": "i-1a2b3c4d5e6f7",
             "application": "Apache Struts 2.5.16",
             "port": 80,
+            "cve": "CVE-2018-11776",
             "name": "CVE-2018-11776",
             "description": "Apache Struts versions 2.3 to 2.3.34 and 2.5 to 2.5.16 suffer from possible Remote Code Execution when alwaysSelectFullNamespace is true",
-            "cve": "CVE-2018-11776",
-            "cwe": "",
             "cvss": [
                 {
-                    "version": "3.0",
-                    "score": 8.1,
                     "vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
                 }
             ]
@@ -429,8 +430,6 @@ securiCAD Enterprise supports any type of vulnerability data by using a generic 
 
 ### Vulnerabilities in the simulation
 securiCAD Enterprise uses the [CVSS vector](https://www.first.org/cvss/v3.1/specification-document) of a [CVE](https://cve.mitre.org/about/faqs.html#what_is_cve) to asses the impact of a vulnerability in the context of your AWS environment. For example, a CVE with `AV:L` is only exploitabe with local access and not via network access. `AC:H` will require more effort from the attacker compared to `AC:L` and `PR:H` will require the attacker to have high privilege access before being able to exploit the vulnerability in the simulation. The impact of the vulnerability is decided based on the `C/I/A` part of the vector.
-
-`CVSS:2.0` vectors are automatically converted to `CVSS:3` by the tool and if multiple versions are available, the tool will always select the latest one.
 
 ## Disable attack steps
 
