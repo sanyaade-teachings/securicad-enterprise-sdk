@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import base64
 import time
-from typing import TYPE_CHECKING, Any, BinaryIO, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, BinaryIO, Optional
 
-from securicad.model import Model
+from securicad.model import Model, es_serializer
 
 if TYPE_CHECKING:
     from securicad.enterprise.client import Client
@@ -36,14 +38,14 @@ def _get_is_valid(valid: int) -> Optional[bool]:
 class ModelInfo:
     def __init__(
         self,
-        client: "Client",
+        client: Client,
         pid: str,
         mid: str,
         name: str,
         description: str,
         threshold: int,
         samples: int,
-        meta_data: Dict[str, Any],
+        meta_data: dict[str, Any],
         is_valid: Optional[bool],
         validation_issues: str,
     ) -> None:
@@ -59,7 +61,7 @@ class ModelInfo:
         self.validation_issues = validation_issues
 
     @staticmethod
-    def from_dict(client: "Client", dict_model: Dict[str, Any]) -> "ModelInfo":
+    def from_dict(client: Client, dict_model: dict[str, Any]) -> ModelInfo:
         threshold, samples, meta_data = client.models._get_model_data(
             dict_model["pid"], dict_model["mid"]
         )
@@ -85,7 +87,7 @@ class ModelInfo:
         threshold: Optional[int] = None,
         samples: Optional[int] = None,
     ) -> None:
-        data: Dict[str, Any] = {"pid": self.pid, "mid": self.mid}
+        data: dict[str, Any] = {"pid": self.pid, "mid": self.mid}
         if name is not None:
             data["name"] = name
         if description is not None:
@@ -111,24 +113,25 @@ class ModelInfo:
         self.client._post("model/release", {"mid": self.mid})
 
     def get_scad(self) -> bytes:
-        data: Dict[str, Any] = {"pid": self.pid, "mids": [self.mid]}
+        data: dict[str, Any] = {"pid": self.pid, "mids": [self.mid]}
         scad = self.client._post("model/file", data)
         scad_base64 = scad["data"].encode("utf-8")
         scad_bytes = base64.b64decode(scad_base64, validate=True)
         return scad_bytes
 
-    def get_dict(self) -> Dict[str, Any]:
-        data: Dict[str, Any] = {"pid": self.pid, "mids": [self.mid]}
-        dict_model = self.client._post("model/json", data)
+    def get_dict(self) -> dict[str, Any]:
+        data: dict[str, Any] = {"pid": self.pid, "mids": [self.mid]}
+        dict_model: dict[str, Any] = self.client._post("model/json", data)
         return dict_model
 
     def get_model(self) -> Model:
-        return Model(self.get_dict())
+        return es_serializer.deserialize_model(self.get_dict())
 
-    def save(self, model: Model) -> "ModelInfo":
-        model.model["mid"] = self.mid
-        model.model["name"] = self.name
-        data: Dict[str, Any] = {"pid": self.pid, "model": model.model}
+    def save(self, model: Model) -> ModelInfo:
+        dict_model = es_serializer.serialize_model(model)
+        dict_model["mid"] = self.mid
+        dict_model["name"] = self.name
+        data: dict[str, Any] = {"pid": self.pid, "model": dict_model}
         self.client._post("savemodel", data)
         return self.client.models._wait_for_model_validation(self.pid, self.mid)
 
@@ -136,7 +139,7 @@ class ModelInfo:
 
 
 class Models:
-    def __init__(self, client: "Client") -> None:
+    def __init__(self, client: Client) -> None:
         self.client = client
 
     def _wait_for_model_validation(self, pid: str, mid: str) -> ModelInfo:
@@ -151,31 +154,31 @@ class Models:
                 break
             time.sleep(1)
 
-    def _list_dict_models(self, pid: str) -> List[Dict[str, Any]]:
-        dict_models = self.client._post("models", {"pid": pid})
+    def _list_dict_models(self, pid: str) -> list[dict[str, Any]]:
+        dict_models: list[dict[str, Any]] = self.client._post("models", {"pid": pid})
         return dict_models
 
-    def _get_model_data(self, pid: str, mid: str) -> Tuple[int, int, Dict[str, Any]]:
+    def _get_model_data(self, pid: str, mid: str) -> tuple[int, int, dict[str, Any]]:
         model_data = self.client._post("modeldata", {"pid": pid, "mid": mid})
         return model_data["threshold"], model_data["samples"], model_data["metadata"]
 
-    def list_models(self, project: "Project") -> List[ModelInfo]:
+    def list_models(self, project: Project) -> list[ModelInfo]:
         dict_models = self._list_dict_models(project.pid)
-        models = []
+        models: list[ModelInfo] = []
         for dict_model in dict_models:
             models.append(
                 ModelInfo.from_dict(client=self.client, dict_model=dict_model)
             )
         return models
 
-    def get_model_by_mid(self, project: "Project", mid: str) -> ModelInfo:
+    def get_model_by_mid(self, project: Project, mid: str) -> ModelInfo:
         dict_models = self._list_dict_models(project.pid)
         for dict_model in dict_models:
             if dict_model["mid"] == mid:
                 return ModelInfo.from_dict(client=self.client, dict_model=dict_model)
         raise ValueError(f"Invalid model {mid}")
 
-    def get_model_by_name(self, project: "Project", name: str) -> ModelInfo:
+    def get_model_by_name(self, project: Project, name: str) -> ModelInfo:
         dict_models = self._list_dict_models(project.pid)
         for dict_model in dict_models:
             if dict_model["name"] == name:
@@ -185,15 +188,16 @@ class Models:
                 return ModelInfo.from_dict(client=self.client, dict_model=dict_model)
         raise ValueError(f"Invalid model {name}")
 
-    def save_as(self, project: "Project", model: Model, name: str) -> ModelInfo:
-        model.model["name"] = f"{name}.sCAD"
-        data: Dict[str, Any] = {"pid": project.pid, "model": model.model}
+    def save_as(self, project: Project, model: Model, name: str) -> ModelInfo:
+        dict_model = es_serializer.serialize_model(model)
+        dict_model["name"] = f"{name}.sCAD"
+        data: dict[str, Any] = {"pid": project.pid, "model": dict_model}
         dict_model = self.client._post("savemodelas", data)
         return self._wait_for_model_validation(project.pid, dict_model["mid"])
 
     def upload_scad_model(
         self,
-        project: "Project",
+        project: Project,
         filename: str,
         file_io: BinaryIO,
         description: Optional[str] = None,
@@ -212,7 +216,7 @@ class Models:
             file_base64 = base64.b64encode(file_bytes).decode("utf-8")
             return file_base64
 
-        def get_file() -> Dict[str, Any]:
+        def get_file() -> dict[str, Any]:
             _file = {
                 "filename": filename,
                 "file": get_file_content(file_io),
@@ -222,12 +226,12 @@ class Models:
                 _file["description"] = description
             return _file
 
-        data: Dict[str, Any] = {"pid": project.pid, "files": [[get_file()]]}
+        data: dict[str, Any] = {"pid": project.pid, "files": [[get_file()]]}
         dict_model = self.client._put("models", data)[0]
         return self._wait_for_model_validation(project.pid, dict_model["mid"])
 
     def generate_model(
-        self, project: "Project", parser: str, name: str, files: List[Dict[str, Any]]
+        self, project: Project, parser: str, name: str, files: list[dict[str, Any]]
     ) -> ModelInfo:
         """Generates a model with a parser.
 
@@ -257,8 +261,8 @@ class Models:
             file_base64 = base64.b64encode(file_bytes).decode("utf-8")
             return file_base64
 
-        def get_files() -> List[Dict[str, Any]]:
-            _files = []
+        def get_files() -> list[dict[str, Any]]:
+            _files: list[dict[str, Any]] = []
             for file_dict in files:
                 _files.append(
                     {
@@ -269,10 +273,6 @@ class Models:
                 )
             return _files
 
-        data: Dict[str, Any] = {
-            "parser": parser,
-            "name": name,
-            "files": get_files(),
-        }
+        data: dict[str, Any] = {"parser": parser, "name": name, "files": get_files()}
         dict_model = self.client._post(f"projects/{project.pid}/multiparser", data)
         return self._wait_for_model_validation(project.pid, dict_model["mid"])

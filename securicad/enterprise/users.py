@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from enum import Enum, unique
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 if TYPE_CHECKING:
     from securicad.enterprise.client import Client
@@ -28,7 +30,7 @@ class Role(Enum):
     SYSADMIN = ["user", "project_creator", "admin", "system_admin"]
 
     @staticmethod
-    def from_list(roles: List[str]) -> "Role":
+    def from_list(roles: list[str]) -> Role:
         for role in Role:
             if sorted(roles) == sorted(role.value):
                 return role
@@ -38,7 +40,7 @@ class Role(Enum):
 class User:
     def __init__(
         self,
-        client: "Client",
+        client: Client,
         uid: int,
         username: str,
         firstname: str,
@@ -55,7 +57,7 @@ class User:
         self.organization = organization
 
     @staticmethod
-    def from_dict(client: "Client", dict_user: Dict[str, Any]) -> "User":
+    def from_dict(client: Client, dict_user: dict[str, Any]) -> User:
         return User(
             client=client,
             uid=dict_user["uid"],
@@ -74,7 +76,7 @@ class User:
         firstname: Optional[str] = None,
         lastname: Optional[str] = None,
     ) -> None:
-        data: Dict[str, Any] = {
+        data: dict[str, Any] = {
             "uid": self.uid,
             "email": self.username if username is None else username,
             "firstname": self.firstname if firstname is None else firstname,
@@ -101,11 +103,11 @@ class User:
 
 
 class Users:
-    def __init__(self, client: "Client") -> None:
+    def __init__(self, client: Client) -> None:
         self.client = client
 
-    def _list_dict_users(self) -> List[Dict[str, Any]]:
-        dict_users = self.client._post("users")["users"]
+    def _list_dict_users(self) -> list[dict[str, Any]]:
+        dict_users: list[dict[str, Any]] = self.client._post("users")["users"]
         return dict_users
 
     def whoami(self) -> User:
@@ -114,16 +116,16 @@ class Users:
         return User.from_dict(client=self.client, dict_user=dict_user)
 
     def change_password(self, old_password: str, new_password: str) -> None:
-        data: Dict[str, Any] = {
+        data: dict[str, Any] = {
             "oldpassword": old_password,
             "newpassword": new_password,
         }
         access_token = self.client._post("changepwd", data)["access_token"]
         self.client._set_access_token(access_token)
 
-    def list_users(self) -> List[User]:
+    def list_users(self) -> list[User]:
         dict_users = self._list_dict_users()
-        users = []
+        users: list[User] = []
         for dict_user in dict_users:
             users.append(User.from_dict(client=self.client, dict_user=dict_user))
         return users
@@ -150,9 +152,9 @@ class Users:
         firstname: str,
         lastname: str,
         role: Role,
-        organization: Optional["Organization"] = None,
+        organization: Optional[Organization] = None,
     ) -> User:
-        data: Dict[str, Any] = {
+        data: dict[str, Any] = {
             "email": username,
             "password": password,
             "firstname": firstname,

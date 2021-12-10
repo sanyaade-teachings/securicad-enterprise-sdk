@@ -16,7 +16,7 @@ create_venv() {
 }
 
 run_mypy() {
-  mypy --namespace-packages -p securicad.enterprise
+  mypy --namespace-packages --package "securicad.enterprise"
 }
 
 main() {

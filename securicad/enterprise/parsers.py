@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import io
 import json
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 if TYPE_CHECKING:
     from securicad.enterprise.client import Client
@@ -23,19 +25,20 @@ if TYPE_CHECKING:
 
 
 class Parsers:
-    def __init__(self, client: "Client") -> None:
+    def __init__(self, client: Client) -> None:
         self.client = client
 
-    def list_parsers(self) -> List[Dict[str, Any]]:
-        return self.client._get("parsers")
+    def list_parsers(self) -> list[dict[str, Any]]:
+        parsers: list[dict[str, Any]] = self.client._get("parsers")
+        return parsers
 
     def generate_aws_model(
         self,
-        project: "Project",
+        project: Project,
         name: str,
-        cli_files: Optional[List[Dict[str, Any]]] = None,
-        vul_files: Optional[List[Dict[str, Any]]] = None,
-    ) -> "ModelInfo":
+        cli_files: Optional[list[dict[str, Any]]] = None,
+        vul_files: Optional[list[dict[str, Any]]] = None,
+    ) -> ModelInfo:
         """Generates a model from AWS data.
 
         :param project: The :class:`Project` to add the generated model to.
@@ -45,22 +48,22 @@ class Parsers:
         :return: A :class:`ModelInfo` object representing the generated model.
         """
 
-        def get_file_io(dict_file: Dict[str, Any]) -> io.BytesIO:
+        def get_file_io(dict_file: dict[str, Any]) -> io.BytesIO:
             file_str = json.dumps(dict_file, allow_nan=False, indent=2)
             file_bytes = file_str.encode("utf-8")
             return io.BytesIO(file_bytes)
 
         def get_file(
-            sub_parser: str, name: str, dict_file: Dict[str, Any]
-        ) -> Dict[str, Any]:
+            sub_parser: str, name: str, dict_file: dict[str, Any]
+        ) -> dict[str, Any]:
             return {
                 "sub_parser": sub_parser,
                 "name": name,
                 "file": get_file_io(dict_file),
             }
 
-        def get_files() -> List[Dict[str, Any]]:
-            files = []
+        def get_files() -> list[dict[str, Any]]:
+            files: list[dict[str, Any]] = []
             if cli_files is not None:
                 for cli_file in cli_files:
                     files.append(get_file("aws-cli-parser", "aws.json", cli_file))
@@ -75,11 +78,11 @@ class Parsers:
 
     def generate_azure_model(
         self,
-        project: "Project",
+        project: Project,
         name: str,
-        az_active_directory_files: Optional[List[Dict[str, Any]]] = None,
-        application_insight_files: Optional[List[Dict[str, Any]]] = None,
-    ) -> "ModelInfo":
+        az_active_directory_files: Optional[list[dict[str, Any]]] = None,
+        application_insight_files: Optional[list[dict[str, Any]]] = None,
+    ) -> ModelInfo:
         """Generates a model from Azure data.
 
         :param project: The :class:`Project` to add the generated model to.
@@ -89,28 +92,38 @@ class Parsers:
         :return: A :class:`ModelInfo` object representing the generated model.
         """
 
-        def get_file_io(dict_file: Dict[str, Any]) -> io.BytesIO:
+        def get_file_io(dict_file: dict[str, Any]) -> io.BytesIO:
             file_str = json.dumps(dict_file, allow_nan=False, indent=2)
             file_bytes = file_str.encode("utf-8")
             return io.BytesIO(file_bytes)
 
         def get_file(
-            sub_parser: str, name: str, dict_file: Dict[str, Any]
-        ) -> Dict[str, Any]:
+            sub_parser: str, name: str, dict_file: dict[str, Any]
+        ) -> dict[str, Any]:
             return {
                 "sub_parser": sub_parser,
                 "name": name,
                 "file": get_file_io(dict_file),
             }
 
-        def get_files() -> List[Dict[str, Any]]:
-            files = []
+        def get_files() -> list[dict[str, Any]]:
+            files: list[dict[str, Any]] = []
             if az_active_directory_files is not None:
                 for aad_file in az_active_directory_files:
-                    files.append(get_file("azure-active-directory-parser", "azure_ad.json", aad_file))
+                    files.append(
+                        get_file(
+                            "azure-active-directory-parser", "azure_ad.json", aad_file
+                        )
+                    )
             if application_insight_files is not None:
                 for insight_file in application_insight_files:
-                    files.append(get_file("azure-application-insights-parser", "insights.json", insight_file))
+                    files.append(
+                        get_file(
+                            "azure-application-insights-parser",
+                            "insights.json",
+                            insight_file,
+                        )
+                    )
             return files
 
         return self.client.models.generate_model(

@@ -4,15 +4,35 @@
 #
 #    ./tools/scripts/create_requirements.sh
 #
+attrs==21.2.0
+    # via jsonschema
 certifi==2021.10.8
     # via requests
-charset-normalizer==2.0.7
+charset-normalizer==2.0.8
     # via requests
+future-fstrings==1.2.0
+    # via pyecore
 idna==3.3
     # via requests
+importlib-resources==5.4.0
+    # via jsonschema
+jsonschema==4.2.1
+    # via securicad-model
+lxml==4.6.4
+    # via pyecore
+ordered-set==4.0.2
+    # via pyecore
+pyecore==0.12.2
+    # via securicad-model
+pyrsistent==0.18.0
+    # via jsonschema
 requests==2.26.0
     # via securicad-enterprise (setup.cfg)
-securicad-model==0.0.2
+restrictedpython==5.2
+    # via pyecore
+securicad-model==1.0.0
     # via securicad-enterprise (setup.cfg)
 urllib3==1.26.7
     # via requests
+zipp==3.6.0
+    # via importlib-resources

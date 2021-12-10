@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Optional, Tuple, Union
+from __future__ import annotations
+
+from typing import Any, Optional
 from urllib.parse import urljoin
 
 import requests
@@ -38,8 +40,8 @@ class Client:
         token: Optional[str] = None,
         organization: Optional[str] = None,
         backend_url: Optional[str] = None,
-        cacert: Optional[Union[bool, str]] = None,
-        client_cert: Optional[Union[str, Tuple[str, str]]] = None,
+        cacert: Optional[bool | str] = None,
+        client_cert: Optional[str | tuple[str, str]] = None,
     ) -> None:
         self.__init_urls(base_url, backend_url)
         self.__init_session(cacert, client_cert)
@@ -70,11 +72,9 @@ class Client:
         self._backend_url = urljoin(backend_url, "/api/v1/")
 
     def __init_session(
-        self,
-        cacert: Optional[Union[bool, str]],
-        client_cert: Optional[Union[str, Tuple[str, str]]],
+        self, cacert: Optional[bool | str], client_cert: Optional[str | tuple[str, str]]
     ) -> None:
-        def get_user_agent():
+        def get_user_agent() -> str:
             # pylint: disable=import-outside-toplevel
             import securicad.enterprise
 
@@ -87,7 +87,7 @@ class Client:
         if cacert is not None:
             if cacert is False:
                 # pylint: disable=no-member
-                requests.packages.urllib3.disable_warnings(
+                requests.packages.urllib3.disable_warnings(  # type: ignore
                     requests.packages.urllib3.exceptions.InsecureRequestWarning
                 )
             self._session.verify = cacert
@@ -130,7 +130,7 @@ class Client:
     def login(
         self, username: str, password: str, organization: Optional[str] = None
     ) -> None:
-        data: Dict[str, Any] = {"username": username, "password": password}
+        data: dict[str, Any] = {"username": username, "password": password}
         if organization is not None:
             data["organization"] = organization
         access_token = self._post("auth/login", data)["access_token"]

@@ -7,7 +7,6 @@ A Python SDK for [foreseeti's securiCAD Enterprise](https://foreseeti.com/securi
 - [securiCAD Enterprise SDK](#securicad-enterprise-sdk)
   * [Compatibility](#compatibility)
   * [Getting started](#getting-started)
-  * [High value assets](#high-value-assets)
   * [User management](#user-management)
   * [Certificates](#certificates)
   * [Tunings](#tunings)
@@ -20,7 +19,8 @@ A Python SDK for [foreseeti's securiCAD Enterprise](https://foreseeti.com/securi
 
 ## Compatibility
 
-The appropriate version of securiCAD Enterprise SDK will vary depending on your version of securiCAD Enterprise. To see your version of securiCAD Enterprise you can look at the login screen where it's shown.
+The appropriate version of securiCAD Enterprise SDK will vary depending on your version of securiCAD Enterprise.
+To see your version of securiCAD Enterprise you can look at the login screen where it's shown.
 
 securiCAD Enterprise | SDK
 ---------------------|-----
@@ -137,49 +137,11 @@ with open('data.json', mode='r', encoding='utf-8') as json_file:
     aws_data = json.load(json_file)
 ```
 
-## High value assets
-
-Any object and attack step in the model can be set as a high value asset but it requires knowledge about the underlying model and concepts which can be fetched by using `client.metadata.get_metadata()`.
-Use `model.set_high_value_assets()` with the `high_value_assets` parameter and set your high value assets by specifying the object type `metaconcept`, object identifier `id` and target `attackstep` as a list of dicts:
-
-```python
-high_value_assets = [
-    {
-        "metaconcept": "EC2Instance",
-        "attackstep": "HighPrivilegeAccess",
-        "consequence": 7,
-    },
-    {
-        "metaconcept": "DynamoDBTable",
-        "attackstep": "AuthenticatedRead",
-        "id": {
-            "type": "name",
-            "value": "VanguardTable",
-        },
-    },
-    {
-        "metaconcept": "S3Bucket",
-        "attackstep": "AuthenticatedWrite",
-        "id": {
-            "type": "tag",
-            "key": "arn",
-            "value": "arn:aws:s3:::my_corporate_bucket/",
-        },
-    },
-]
-
-# Set high value assets in securiCAD model
-model.set_high_value_assets(high_value_assets=high_value_assets)
-```
-
-`id` is used to match objects in the model with the high value assets.
-The supported `type` are currently `name` and `tag`.
-Omitting the `id` parameters will set all assets of that type as a high value asset.
-Omitting `consequence` will automatically set it to `10`.
-
 ## User management
 
-You can create Organizations, Projects and Users via the SDK. Users have a `Role` in an Organization as well as an `AccessLevel` in a Project. Read more about user management in Enterprise [here](https://www.foreseeti.com/).
+You can create Organizations, Projects and Users via the SDK.
+Users have a `Role` in an Organization as well as an `AccessLevel` in a Project.
+Read more about user management in Enterprise [here](https://www.foreseeti.com/).
 
 ```python
 from securicad.enterprise import AccessLevel, Role
@@ -205,10 +167,14 @@ project.add_user(user=user, access_level=AccessLevel.USER)
 ```
 
 ## Certificates
+
 If you have installed securiCAD Enterprise with a client certificate or have received one from foreseeti to access a managed instance your script will need to use the certificate to communicate with the instance.
 
 ### Managed instance
-To use your `.p12` certificate file with the SDK, you need to extract the `.crt` and `.key` files. Run the following snippets to extract the required files. When prompted for the Import Password, use the one provided to you by foreseeti.
+
+To use your `.p12` certificate file with the SDK, you need to extract the `.crt` and `.key` files.
+Run the following snippets to extract the required files.
+When prompted for the Import Password, use the one provided to you by foreseeti.
 
 `openssl pkcs12 -in cert.p12 -nocerts -out cert.key -nodes`
 
@@ -226,13 +192,15 @@ client = enterprise.client(
 ```
 
 ### On-premise installation
+
 For on-premise installations you can use the ca certificate directly as described in `example.py`
 
 ## Tunings
 
 You can modify models in specific ways with the tunings api.
 
-A tuning has 3 core attributes: type, filter, arguments. The type is the category of change, the filter is what you want the change applied to, and the arguments are what new values you want.
+A tuning has 3 core attributes: type, filter, arguments.
+The type is the category of change, the filter is what you want the change applied to, and the arguments are what new values you want.
 
 **Type**
 
@@ -246,7 +214,9 @@ The tuning type is one of 5, the value of this field affects what other argument
 
 **Filter**
 
-The filter is how you select which objects the arguments are applied to. It's a dictionary which, depending on type, accepts different values. More details in the various type descriptions.
+The filter is how you select which objects the arguments are applied to.
+It's a dictionary which, depending on type, accepts different values.
+More details in the various type descriptions.
 
 ### `attacker`: Adding attack steps to the attacker's entrypoints
 
@@ -387,60 +357,80 @@ The tuning takes these arguments:
 - `tags`: A dictionary of zero or more key-value pairs.
 
 ## Vulnerability data and vulnerabilities
-securiCAD Enterprise supports vulnerability data from third parties in combination with the AWS data. Typical examples are vulnerability scanners, static code analysis and dependency managers. Vulnerability data can be used to simulate the impact of known vulnerabilities in your AWS environment.
+
+securiCAD Enterprise supports vulnerability data from third parties in combination with the AWS data.
+Typical examples are vulnerability scanners, static code analysis and dependency managers.
+Vulnerability data can be used to simulate the impact of known vulnerabilities in your AWS environment.
 
 If you wish to run the simulation with third party vulnerability data, include the the `vul_files` parameter for `client.parsers.generate_aws_model()`.
+
 ```python
 model_info = client.parsers.generate_aws_model(
     project, name="My model", cli_files=[aws_data], vul_files=[vul_data]
 )
-
 ```
+
 The expected `vuln_data` format is explained below.
 
 ### Vulnerability data format
-securiCAD Enterprise supports any type of vulnerability data by using a generic json format. The json file should be a list of `findings` that describes each finding from e.g., a vulnerability scanner.
 
-The mandatory fields are `"application"`, `"port"`, `"cvss"` and one of the host identifiers `"host_id"`, `"host_ip"`, `"image_id"`, `"host_tags"`. The fields `"host_id"`, `"host_ip"` and `"image_id"` are strings and `"host_tags"` is a list of `{"key": <key>, "value": <value>}` objects that matches on host tags. `"name"`, `"description"`, `"cve"` and `"cwe"` are optional.
+securiCAD Enterprise supports any type of vulnerability data by using a generic json format.
+The json file should be a list of `findings` that describes each finding from e.g., a vulnerability scanner.
 
-See the example below for a practical example of a finding of `CVE-2018-11776` on a specific EC2 instance with instance id `"i-1a2b3c4d5e6f7"`. If the application is not listening on any port, you can set `"port"` to `0`. CVSS 2.0, 3.0 and 3.1 vectors are supported.
+The mandatory fields are `"application"`, `"port"`, `"cvss"` and one of the host identifiers `"host_id"`, `"host_ip"`, `"image_id"`, `"host_tags"`.
+The fields `"host_id"`, `"host_ip"` and `"image_id"` are strings and `"host_tags"` is a list of `{"key": <key>, "value": <value>}` objects that matches on host tags.
+`"name"`, `"description"`, `"cve"` and `"cwe"` are optional.
 
-The optional `"exploit"` parameter takes a string according to the [Exploitability (CVSS v2) or Exploit Code Maturity (CVSS v3) specification](https://www.first.org/cvss/specification-document) that will affect how much effort is required for the Attacker to exploit a vulnerability. For example: `"exploit": "H"`
+See the example below for a practical example of a finding of `CVE-2018-11776` on a specific EC2 instance with instance id `"i-1a2b3c4d5e6f7"`.
+If the application is not listening on any port, you can set `"port"` to `0`.
+CVSS 2.0, 3.0 and 3.1 vectors are supported.
+
+The optional `"exploit"` parameter takes a string according to the [Exploitability (CVSS v2) or Exploit Code Maturity (CVSS v3) specification](https://www.first.org/cvss/specification-document) that will affect how much effort is required for the Attacker to exploit a vulnerability.
+For example: `"exploit": "H"`
 
 ```json
 {
-    "findings": [
+  "findings": [
+    {
+      "host_id": "i-1a2b3c4d5e6f7",
+      "application": "Apache Struts 2.5.16",
+      "port": 80,
+      "cve": "CVE-2018-11776",
+      "name": "CVE-2018-11776",
+      "description": "Apache Struts versions 2.3 to 2.3.34 and 2.5 to 2.5.16 suffer from possible Remote Code Execution when alwaysSelectFullNamespace is true",
+      "cvss": [
         {
-            "host_id": "i-1a2b3c4d5e6f7",
-            "application": "Apache Struts 2.5.16",
-            "port": 80,
-            "cve": "CVE-2018-11776",
-            "name": "CVE-2018-11776",
-            "description": "Apache Struts versions 2.3 to 2.3.34 and 2.5 to 2.5.16 suffer from possible Remote Code Execution when alwaysSelectFullNamespace is true",
-            "cvss": [
-                {
-                    "vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
-                }
-            ]
+          "vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
         }
-    ]
+      ]
+    }
+  ]
 }
-
 ```
 
 ### Vulnerabilities in the simulation
-securiCAD Enterprise uses the [CVSS vector](https://www.first.org/cvss/v3.1/specification-document) of a [CVE](https://cve.mitre.org/about/faqs.html#what_is_cve) to asses the impact of a vulnerability in the context of your AWS environment. For example, a CVE with `AV:L` is only exploitabe with local access and not via network access. `AC:H` will require more effort from the attacker compared to `AC:L` and `PR:H` will require the attacker to have high privilege access before being able to exploit the vulnerability in the simulation. The impact of the vulnerability is decided based on the `C/I/A` part of the vector.
+
+securiCAD Enterprise uses the [CVSS vector](https://www.first.org/cvss/v3.1/specification-document) of a [CVE](https://cve.mitre.org/about/faqs.html#what_is_cve) to asses the impact of a vulnerability in the context of your AWS environment.
+For example, a CVE with `AV:L` is only exploitabe with local access and not via network access.
+`AC:H` will require more effort from the attacker compared to `AC:L` and `PR:H` will require the attacker to have high privilege access before being able to exploit the vulnerability in the simulation.
+The impact of the vulnerability is decided based on the `C/I/A` part of the vector.
 
 ## Disable attack steps
 
-To configure the attack simulation and the capabilities of the attacker use `Model.disable_attackstep(metaconcept, attackstep, name)`:
+To configure the attack simulation and the capabilities of the attacker use:
 
 ```python
+from securicad.langspec import TtcDistribution, TtcFunction
+
 # Disable ReadObject on a specific S3Bucket
-model.disable_attackstep("S3Bucket", "ReadObject", "my-bucket")
+my_bucket = model.objects(name="my-bucket", asset_type="S3Bucket")[0]
+read_object = my_bucket.attack_step("readObject")
+read_object.ttc = TtcFunction(distribution=TtcDistribution.INFINITY, arguments=[])
 
 # Disable DeleteObject on all S3Buckets
-model.disable_attackstep("S3Bucket", "ReadObject")
+for bucket in model.objects(asset_type="S3Bucket"):
+    read_object = bucket.attack_step("readObject")
+    read_object.ttc = TtcFunction(distribution=TtcDistribution.INFINITY, arguments=[])
 
 # Save changes to model in project
 model_info.save(model)
@@ -450,7 +440,8 @@ model_info.save(model)
 
 Enterprise also supports batch scenario operations through the API.
 
-You can POST json data to `HOST/batch/v1/jobs`. This endpoint requires a valid JWT token from the corresponding Enterprise instance.
+You can POST json data to `HOST/batch/v1/jobs`.
+This endpoint requires a valid JWT token from the corresponding Enterprise instance.
 
 Here's a brief example of input data, using output json data from the securicad-aws-collector.
 
@@ -499,16 +490,19 @@ batch_url = f"https://enterpriseinstance.foo/batch/v1"
 resp = client._session.post(f"{batch_url}/jobs", json=test_data)
 tag = resp.json()["response"]["tag"]
 # you can poll "{batch_url}/poll/{tag}" to get job status
-
 ```
 
 ## Simulation result data formats
-The JSON format of the simulation results from `simulation.get_results()` and the webhooks are described below. The examples are truncated but provides an example for each object type.
+
+The JSON format of the simulation results from `simulation.get_results()` and the webhooks are described below.
+The examples are truncated but provides an example for each object type.
 
 ### Overview
-The simulations results from the SDK and the webhooks are very similar and their respective overall formats are described first with their mututal objects detailed after.
+
+The simulation results from the SDK and the webhooks are very similar and their respective overall formats are described first with their mututal objects detailed after.
 
 #### Simulation results
+
 The simulation report format used by securiCAD and the JSON blob that is returned by the SDK.
 
 ```json
@@ -522,11 +516,13 @@ The simulation report format used by securiCAD and the JSON blob that is returne
     "attacker": {...}
 }
 ```
+
 * `simid`: The simulation id
 * `report_url`: Complete URL to the simulation report in the UI
 * `attacker`: Information about the Attacker object in the simulation
 
 #### Webhooks
+
 ```json
 {
     "meta": {...},
@@ -536,12 +532,16 @@ The simulation report format used by securiCAD and the JSON blob that is returne
     "chokepoints": [...],
 }
 ```
+
 * `meta`: Metadata from the simulation including report url, project, scenario and simulation data.
 
 ### Examples
 
 #### `results`
-The `results` object provides the high level values for risk exposure as well as the TTCs for each high value asset in the list `risks`. `maxrisk` is simply the sum of all `consequence` of the high value asset and `risk` is the "amount" of consequence the attacker is able to compromise. The `ttcX` values is the TTC for each procentile and the `values` list contains the TTC for each sample (sorted and truncated).
+
+The `results` object provides the high level values for risk exposure as well as the TTCs for each high value asset in the list `risks`.
+`maxrisk` is simply the sum of all `consequence` of the high value asset and `risk` is the "amount" of consequence the attacker is able to compromise.
+The `ttcX` values is the TTC for each procentile and the `values` list contains the TTC for each sample (sorted and truncated).
 
 ```json
 "results": {
@@ -575,6 +575,7 @@ The `results` object provides the high level values for risk exposure as well as
 },
 ```
 #### `model/model_data`
+
 The `model` or `model_data` object contains a JSON representation of your complete model including every object keyed on its id in `objects` and each association in the list `associations` where `id1` and `id2` are references to object ids.
 
 ```json
@@ -611,10 +612,13 @@ The `model` or `model_data` object contains a JSON representation of your comple
     "groups": {...},
     "views": [...]
 }
-
 ```
+
 #### `threat_summary`
-The `threat_summary` is a list of top attack steps used by the attacker including suggested mitigations in `defenses`. Each object in the list contains information about the attack step, which high value assets it affects in `hva_list` as well as metadata such as `mitre` and `stride`. `object` is a reference to a model id in `model["objects"]`
+
+The `threat_summary` is a list of top attack steps used by the attacker including suggested mitigations in `defenses`.
+Each object in the list contains information about the attack step, which high value assets it affects in `hva_list` as well as metadata such as `mitre` and `stride`.
+`object` is a reference to a model id in `model["objects"]`
 
 ```json
 "threat_summary": [
@@ -642,8 +646,12 @@ The `threat_summary` is a list of top attack steps used by the attacker includin
         {...}
 ]
 ```
+
 #### `chokepoints`
-This is data used for the chokepoints in the report. It denotes the objects in the chokepoint visualization with `parentID` and `childID` which is references to an object's `eid` found in `model["objects"]`. The `targets` list denotes which high value asset it affects.
+
+This is data used for the chokepoints in the report.
+It denotes the objects in the chokepoint visualization with `parentID` and `childID` which is references to an object's `eid` found in `model["objects"]`.
+The `targets` list denotes which high value asset it affects.
 
 ```json
 "chokepoints": [
@@ -664,7 +672,11 @@ This is data used for the chokepoints in the report. It denotes the objects in t
 ```
 
 #### `meta`
-This is metadata about a simulation result returned by the webhook. The `report_url` is a deep link to the report excluding your IP/domain. To use the URL externally, prepend your domain name to the url e.g., `https://mydomain.com/project/749432228616411/scenario/265400114917031/report/138174299751445`
+
+This is metadata about a simulation result returned by the webhook.
+The `report_url` is a deep link to the report excluding your IP/domain.
+To use the URL externally, prepend your domain name to the url e.g., `https://mydomain.com/project/749432228616411/scenario/265400114917031/report/138174299751445`
+
 ```json
 "meta": {
     "project": {
@@ -688,11 +700,14 @@ This is metadata about a simulation result returned by the webhook. The `report_
     ]
 }
 ```
+
 ## Exceptions
 
-The SDK raises two types of exceptions depending on what went wrong. `securicad.enterprise.exceptions.StatusCodeException` or the standard library exception `ValueError`.
+The SDK raises two types of exceptions depending on what went wrong.
+`securicad.enterprise.exceptions.StatusCodeException` or the standard library exception `ValueError`.
 
-`StatusCodeException` is raised when an unexpected status code is received from enterprise. This can for example be a status code 401 on a failed login attempt.
+`StatusCodeException` is raised when an unexpected status code is received from enterprise.
+This can for example be a status code 401 on a failed login attempt.
 
 ```python
 client = enterprise.client(

@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from enum import IntEnum, unique
-from typing import TYPE_CHECKING, Any, BinaryIO, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, BinaryIO, Optional
 
 if TYPE_CHECKING:
     from securicad.enterprise.client import Client
@@ -32,7 +34,7 @@ class AccessLevel(IntEnum):
     ADMIN = 255
 
     @staticmethod
-    def from_int(level: int) -> "AccessLevel":
+    def from_int(level: int) -> AccessLevel:
         for access_level in AccessLevel:
             if level == access_level:
                 return access_level
@@ -42,7 +44,7 @@ class AccessLevel(IntEnum):
 class Project:
     def __init__(
         self,
-        client: "Client",
+        client: Client,
         pid: str,
         name: str,
         description: str,
@@ -55,7 +57,7 @@ class Project:
         self.access_level = access_level
 
     @staticmethod
-    def from_dict(client: "Client", dict_project: Dict[str, Any]) -> "Project":
+    def from_dict(client: Client, dict_project: dict[str, Any]) -> Project:
         return Project(
             client=client,
             pid=dict_project["pid"],
@@ -67,7 +69,7 @@ class Project:
     def update(
         self, *, name: Optional[str] = None, description: Optional[str] = None
     ) -> None:
-        data: Dict[str, Any] = {
+        data: dict[str, Any] = {
             "pid": self.pid,
             "name": self.name if name is None else name,
             "description": self.description if description is None else description,
@@ -79,43 +81,41 @@ class Project:
     def delete(self) -> None:
         self.client._delete("project", {"pid": self.pid})
 
-    def list_users(self) -> List["User"]:
+    def list_users(self) -> list[User]:
         dict_project = self.client.projects._get_dict_project_by_pid(self.pid)
-        users = []
+        users: list[User] = []
         for dict_user in dict_project["users"]:
             users.append(self.client.users.get_user_by_uid(dict_user["uid"]))
         return users
 
-    def add_user(
-        self, user: "User", access_level: Optional[AccessLevel] = None
-    ) -> None:
-        data: Dict[str, Any] = {"pid": self.pid, "uid": user.uid}
+    def add_user(self, user: User, access_level: Optional[AccessLevel] = None) -> None:
+        data: dict[str, Any] = {"pid": self.pid, "uid": user.uid}
         if access_level is not None:
             data["accesslevel"] = int(access_level)
         self.client._put("project/user", data)
 
-    def remove_user(self, user: "User") -> None:
-        data: Dict[str, Any] = {"pid": self.pid, "uid": user.uid}
+    def remove_user(self, user: User) -> None:
+        data: dict[str, Any] = {"pid": self.pid, "uid": user.uid}
         self.client._delete("project/user", data)
 
-    def get_access_level(self, user: "User") -> Optional[AccessLevel]:
+    def get_access_level(self, user: User) -> Optional[AccessLevel]:
         dict_project = self.client.projects._get_dict_project_by_pid(self.pid)
         for dict_user in dict_project["users"]:
             if dict_user["uid"] == user.uid:
                 return AccessLevel.from_int(dict_user["accesslevel"])
         return None
 
-    def set_access_level(self, user: "User", access_level: AccessLevel) -> None:
-        data: Dict[str, Any] = {
+    def set_access_level(self, user: User, access_level: AccessLevel) -> None:
+        data: dict[str, Any] = {
             "pid": self.pid,
             "uid": user.uid,
             "accesslevel": int(access_level),
         }
         self.client._post("project/user", data)
 
-    def list_models(self) -> List["ModelInfo"]:
+    def list_models(self) -> list[ModelInfo]:
         dict_projects = self.client.projects._list_dict_projects()
-        models = []
+        models: list[ModelInfo] = []
         for dict_project in dict_projects:
             if dict_project["pid"] == self.pid:
                 for dict_model in dict_project["models"]:
@@ -125,31 +125,28 @@ class Project:
                 break
         return models
 
-    def import_models(self, model_infos: List["ModelInfo"]) -> None:
+    def import_models(self, model_infos: list[ModelInfo]) -> None:
         mids = [model_info.mid for model_info in model_infos]
-        data: Dict[str, Any] = {"pid": self.pid, "mids": mids}
+        data: dict[str, Any] = {"pid": self.pid, "mids": mids}
         self.client._post("models/import", data)
 
     def upload_scad_model(
-        self,
-        filename: str,
-        file_io: BinaryIO,
-        description: Optional[str] = None,
-    ) -> "ModelInfo":
+        self, filename: str, file_io: BinaryIO, description: Optional[str] = None
+    ) -> ModelInfo:
         return self.client.models.upload_scad_model(
             project=self, filename=filename, file_io=file_io, description=description
         )
 
-    def list_scenarios(self) -> List["Scenario"]:
+    def list_scenarios(self) -> list[Scenario]:
         return self.client.scenarios.list_scenarios(self)
 
     def create_scenario(
         self,
-        model_info: "ModelInfo",
+        model_info: ModelInfo,
         name: str,
         description: Optional[str] = None,
-        tunings: Optional[List["Tuning"]] = None,
-    ) -> "Scenario":
+        tunings: Optional[list[Tuning]] = None,
+    ) -> Scenario:
         return self.client.scenarios.create_scenario(
             project=self,
             model_info=model_info,
@@ -158,25 +155,25 @@ class Project:
             tunings=tunings,
         )
 
-    def list_tunings(self) -> List["Tuning"]:
+    def list_tunings(self) -> list[Tuning]:
         return self.client.tunings.list_tunings(self)
 
 
 class Projects:
-    def __init__(self, client: "Client") -> None:
+    def __init__(self, client: Client) -> None:
         self.client = client
 
-    def _list_dict_projects(self) -> List[Dict[str, Any]]:
-        dict_projects = self.client._post("projects")
+    def _list_dict_projects(self) -> list[dict[str, Any]]:
+        dict_projects: list[dict[str, Any]] = self.client._post("projects")
         return dict_projects
 
-    def _get_dict_project_by_pid(self, pid: str) -> Dict[str, Any]:
-        dict_project = self.client._post("project/data", {"pid": pid})
+    def _get_dict_project_by_pid(self, pid: str) -> dict[str, Any]:
+        dict_project: dict[str, Any] = self.client._post("project/data", {"pid": pid})
         return dict_project
 
-    def list_projects(self) -> List[Project]:
+    def list_projects(self) -> list[Project]:
         dict_projects = self._list_dict_projects()
-        projects = []
+        projects: list[Project] = []
         for dict_project in dict_projects:
             projects.append(
                 Project.from_dict(client=self.client, dict_project=dict_project)
@@ -201,9 +198,9 @@ class Projects:
         self,
         name: str,
         description: Optional[str] = None,
-        organization: Optional["Organization"] = None,
+        organization: Optional[Organization] = None,
     ) -> Project:
-        data: Dict[str, Any] = {
+        data: dict[str, Any] = {
             "name": name,
             "description": "" if description is None else description,
         }

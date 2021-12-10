@@ -3,28 +3,41 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.isort]
-profile = "black"
 py_version = "38"
-src_paths = [".", "tests"]
+virtual_env = "venv"
+profile = "black"
 
 [tool.black]
 target-version = ["py38"]
 
-[tool.mypy]
-python_version = "3.8"
-
-[tool.pylint.messages_control]
-# C0330, C0326: https://black.readthedocs.io/en/stable/guides/using_black_with_other_tools.html#pylint
-# W0212: protected-access
-# R0902: too-many-instance-attributes
-# R0903: too-few-public-methods
-# R0913: too-many-arguments
-disable = "C0330, C0326, W0212, R0902, R0903, R0913"
-
-[tool.pylint.format]
-max-line-length = "88"
-good-names = "e, f, op"
-
 [tool.pyright]
+venvPath = "."
+venv = "venv"
 pythonVersion = "3.8"
 typeCheckingMode = "strict"
+reportImportCycles = false
+reportPrivateUsage = false
+
+[tool.mypy]
+python_version = "3.8"
+pretty = true
+strict = true
+
+[tool.pylint.master]
+py-version = "3.8"
+jobs = 0
+
+[tool.pylint.messages_control]
+disable = [
+  "C0114", # missing-module-docstring
+  "C0115", # missing-class-docstring
+  "C0116", # missing-function-docstring
+  "C0414", # useless-import-alias
+  "W0212", # protected-access
+]
+
+[tool.pylint.basic]
+good-names = ["i", "j", "k", "ex", "Run", "_", "f", "op"]
+
+[tool.pylint.format]
+max-line-length = 88

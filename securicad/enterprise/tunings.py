@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Optional
 
 if TYPE_CHECKING:
     from securicad.enterprise.client import Client
@@ -22,8 +24,8 @@ if TYPE_CHECKING:
 class Tuning:
     def __init__(
         self,
-        client: "Client",
-        project: "Project",
+        client: Client,
+        project: Project,
         tuning_id: str,
         tuning_type: str,
         op: str,
@@ -31,8 +33,8 @@ class Tuning:
         filter_object_name: Optional[str] = None,
         filter_attackstep: Optional[str] = None,
         filter_defense: Optional[str] = None,
-        filter_tags: Optional[Dict[str, Any]] = None,
-        tags: Optional[Dict[str, Any]] = None,
+        filter_tags: Optional[dict[str, Any]] = None,
+        tags: Optional[dict[str, Any]] = None,
         ttc: Optional[str] = None,
         probability: Optional[float] = None,
         consequence: Optional[int] = None,
@@ -54,8 +56,8 @@ class Tuning:
 
     @staticmethod
     def from_dict(
-        client: "Client", project: "Project", dict_tuning: Dict[str, Any]
-    ) -> "Tuning":
+        client: Client, project: Project, dict_tuning: dict[str, Any]
+    ) -> Tuning:
         return Tuning(
             client=client,
             project=project,
@@ -80,12 +82,12 @@ class Tuning:
 
 
 class Tunings:
-    def __init__(self, client: "Client") -> None:
+    def __init__(self, client: Client) -> None:
         self.client = client
 
-    def list_tunings(self, project: "Project") -> List[Tuning]:
+    def list_tunings(self, project: Project) -> list[Tuning]:
         dict_tunings = self.client._post("tunings", {"pid": project.pid})
-        retr = []
+        retr: list[Tuning] = []
         for tuning_id, dict_tuning in dict_tunings["configs"].items():
             retr.append(
                 Tuning.from_dict(
@@ -98,17 +100,17 @@ class Tunings:
 
     def create_tuning(
         self,
-        project: "Project",
+        project: Project,
         tuning_type: str,
-        filterdict: Dict[str, Any],
+        filterdict: dict[str, Any],
         op: str = "apply",
-        tags: Optional[Dict[str, Any]] = None,
+        tags: Optional[dict[str, Any]] = None,
         ttc: Optional[str] = None,
         probability: Optional[float] = None,
         consequence: Optional[int] = None,
     ) -> Tuning:
-        def get_tuning() -> Dict[str, Any]:
-            tuning: Dict[str, Any] = {
+        def get_tuning() -> dict[str, Any]:
+            tuning: dict[str, Any] = {
                 "type": tuning_type,
                 "op": op,
                 "filter": filterdict,

@@ -1,4 +1,6 @@
-from securicad import aws_collector, enterprise
+import securicad.aws_collector as aws_collector
+
+import securicad.enterprise as enterprise
 
 # Fetch AWS data
 config_data = aws_collector.get_config_data(
@@ -40,16 +42,9 @@ model = model_info.get_model()
 # securiCAD metadata with all assets and attacksteps
 metadata = client.metadata.get_metadata()
 
-high_value_assets = [
-    {
-        "metaconcept": "S3Bucket",
-        "attackstep": "ReadObject",
-        "consequence": 7,
-    }
-]
-
 # Set high value assets in securiCAD model
-model.set_high_value_assets(high_value_assets=high_value_assets)
+for obj in model.objects(asset_type="S3Bucket"):
+    obj.attack_step("readObject").meta["consequence"] = 7
 
 # Save changes to model in project
 model_info.save(model)

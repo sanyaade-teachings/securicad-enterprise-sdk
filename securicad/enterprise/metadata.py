@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import json
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Any, Dict, List
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
     from securicad.enterprise.client import Client
@@ -27,21 +29,21 @@ class RiskType(Enum):
 
 
 class RiskTypeJsonEncoder(json.JSONEncoder):
-    def default(self, o):
+    def default(self, o: Any) -> Any:
         if isinstance(o, RiskType):
             return o.name
         return super().default(o)
 
 
 class Metadata:
-    def __init__(self, client: "Client") -> None:
+    def __init__(self, client: Client) -> None:
         self.client = client
 
-    def get_metadata(self) -> List[Dict[str, Any]]:
-        def parse_risktype(attackstep):
+    def get_metadata(self) -> list[dict[str, Any]]:
+        def parse_risktype(attackstep: dict[str, Any]) -> list[RiskType]:
             if "riskType" not in attackstep:
                 return []
-            retr = []
+            retr: list[RiskType] = []
             if "Availability" in attackstep["riskType"]:
                 retr.append(RiskType.AVAILABILITY)
             if "Confidentiality" in attackstep["riskType"]:
@@ -51,9 +53,9 @@ class Metadata:
             return retr
 
         metadata = self.client._get("metadata")
-        metalist = []
+        metalist: list[dict[str, Any]] = []
         for asset, data in metadata["assets"].items():
-            attacksteps = []
+            attacksteps: list[dict[str, Any]] = []
             for attackstep in data["attacksteps"]:
                 attacksteps.append(
                     {
@@ -69,4 +71,4 @@ class Metadata:
                     "attacksteps": attacksteps,
                 }
             )
-        return sorted(metalist, key=lambda asset: asset["name"])
+        return sorted(metalist, key=lambda asset: cast(str, asset["name"]))

@@ -12,17 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from securicad.enterprise.client import Client
-from securicad.enterprise.models import ModelInfo
-from securicad.enterprise.organizations import Organization
-from securicad.enterprise.projects import AccessLevel, Project
-from securicad.enterprise.scenarios import Scenario
-from securicad.enterprise.simulations import Simulation
-from securicad.enterprise.tunings import Tuning
-from securicad.enterprise.users import Role, User
+from __future__ import annotations
+
+from typing import Any
+
+from securicad.enterprise.client import Client as Client
+from securicad.enterprise.models import ModelInfo as ModelInfo
+from securicad.enterprise.organizations import Organization as Organization
+from securicad.enterprise.projects import AccessLevel as AccessLevel
+from securicad.enterprise.projects import Project as Project
+from securicad.enterprise.scenarios import Scenario as Scenario
+from securicad.enterprise.simulations import Simulation as Simulation
+from securicad.enterprise.tunings import Tuning as Tuning
+from securicad.enterprise.users import Role as Role
+from securicad.enterprise.users import User as User
 
 __version__ = "0.3.3"
 
 
-def client(*args, **kwargs) -> Client:
+def client(*args: Any, **kwargs: Any) -> Client:
     return Client(*args, **kwargs)

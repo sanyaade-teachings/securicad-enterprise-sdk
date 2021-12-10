@@ -17,21 +17,21 @@ import sys
 from pathlib import Path
 from urllib.parse import urljoin
 
-import pytest
-
 import conftest
+import pytest
 import utils
 
 # isort: off
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
-from securicad import aws_collector, enterprise
+import securicad.aws_collector as aws_collector
+import securicad.enterprise as enterprise
 
 # isort: on
 
 
 def test_example():
-    def get_org_name(client):
+    def get_org_name(client: enterprise.Client) -> str:
         orgs = client.organizations.list_organizations()
         while True:
             org_name = f"org-{random.randint(1000, 9999)}"
@@ -91,16 +91,9 @@ def test_example():
     # securiCAD metadata with all assets and attacksteps
     metadata = client.metadata.get_metadata()
 
-    high_value_assets = [
-        {
-            "metaconcept": "S3Bucket",
-            "attackstep": "ReadObject",
-            "consequence": 7,
-        }
-    ]
-
     # Set high value assets in securiCAD model
-    model.set_high_value_assets(high_value_assets=high_value_assets)
+    for obj in model.objects(asset_type="S3Bucket"):
+        obj.attack_step("readObject").meta["consequence"] = 7
 
     # Save changes to model in project
     model_info.save(model)
