@@ -10,13 +10,13 @@ attrs==21.2.0
     # via
     #   jsonschema
     #   pytest
-black==21.11b1
+black==21.12b0
     # via securicad-enterprise (setup.cfg)
 bleach==4.1.0
     # via readme-renderer
-boto3==1.20.16
+boto3==1.20.26
     # via securicad-aws-collector
-botocore==1.23.16
+botocore==1.23.26
     # via
     #   boto3
     #   s3transfer
@@ -27,7 +27,7 @@ certifi==2021.10.8
     # via requests
 cffi==1.15.0
     # via cryptography
-charset-normalizer==2.0.8
+charset-normalizer==2.0.9
     # via requests
 click==8.0.3
     # via
@@ -37,7 +37,7 @@ colorama==0.4.4
     # via twine
 coverage==6.2
     # via securicad-enterprise (setup.cfg)
-cryptography==36.0.0
+cryptography==36.0.1
     # via secretstorage
 docutils==0.18.1
     # via readme-renderer
@@ -45,7 +45,7 @@ future-fstrings==1.2.0
     # via pyecore
 idna==3.3
     # via requests
-importlib-metadata==4.8.2
+importlib-metadata==4.10.0
     # via
     #   keyring
     #   twine
@@ -65,19 +65,19 @@ jmespath==0.10.0
     # via
     #   boto3
     #   botocore
-jsonschema==4.2.1
+jsonschema==4.3.2
     # via
     #   securicad-aws-collector
     #   securicad-model
 keyring==23.4.0
     # via twine
-lazy-object-proxy==1.6.0
+lazy-object-proxy==1.7.1
     # via astroid
-lxml==4.6.4
+lxml==4.7.1
     # via pyecore
 mccabe==0.6.1
     # via pylint
-mypy==0.910
+mypy==0.930
     # via securicad-enterprise (setup.cfg)
 mypy-extensions==0.4.3
     # via
@@ -94,9 +94,9 @@ pathspec==0.9.0
     # via black
 pep517==0.12.0
     # via build
-pkginfo==1.8.1
+pkginfo==1.8.2
     # via twine
-platformdirs==2.4.0
+platformdirs==2.4.1
     # via
     #   black
     #   pylint
@@ -110,7 +110,7 @@ pyecore==0.12.2
     # via securicad-model
 pygments==2.10.0
     # via readme-renderer
-pylint==2.12.1
+pylint==2.12.2
     # via securicad-enterprise (setup.cfg)
 pyparsing==3.0.6
     # via packaging
@@ -120,10 +120,8 @@ pytest==6.2.5
     # via securicad-enterprise (setup.cfg)
 python-dateutil==2.8.2
     # via botocore
-readme-renderer==30.0
+readme-renderer==32.0
     # via twine
-regex==2021.11.10
-    # via black
 requests==2.26.0
     # via
     #   requests-toolbelt
@@ -149,23 +147,23 @@ six==1.16.0
     #   python-dateutil
 toml==0.10.2
     # via
-    #   mypy
     #   pylint
     #   pytest
-tomli==1.2.2
+tomli==1.2.3
     # via
     #   black
     #   build
+    #   mypy
     #   pep517
 tqdm==4.62.3
     # via twine
-twine==3.6.0
+twine==3.7.1
     # via securicad-enterprise (setup.cfg)
 typer==0.4.0
     # via securicad-aws-collector
-types-requests==2.26.1
+types-requests==2.26.2
     # via securicad-enterprise (setup.cfg)
-typing-extensions==4.0.0
+typing-extensions==4.0.1
     # via
     #   astroid
     #   black

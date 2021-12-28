@@ -145,9 +145,7 @@
   },
   {
     "name": "Attacker",
-    "description": "An Attacker is an individual who is determined to gain access to resources with or without the proper authority, often to uncover and exploit weaknesses or cause damage. Naturally, the success rate of the attacker is dependent on its characteristics.
-
-In securiCAD, an Attacker is assumed to be a professional penetration tester with all public knowledge and tools to its disposal. As such, each attack step and the provided statistics of success must be viewed in the light of a penetration tester attacker profile.",
+    "description": "An Attacker is an individual who is determined to gain access to resources with or without the proper authority, often to uncover and exploit weaknesses or cause damage. Naturally, the success rate of the attacker is dependent on its characteristics. In securiCAD, an Attacker is assumed to be a professional penetration tester with all public knowledge and tools to its disposal. As such, each attack step and the provided statistics of success must be viewed in the light of a penetration tester attacker profile.",
     "attacksteps": [
       {
         "name": "EntryPoint",
