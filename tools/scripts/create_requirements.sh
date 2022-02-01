@@ -53,7 +53,7 @@ compile_requirements() {
 
 main() {
   create_venv
-  install_package pip
+  install_package "pip<22" # FIXME remove version restriction, https://github.com/jazzband/pip-tools/issues/1558
   install_package setuptools
   install_package wheel
   install_package pip-tools
