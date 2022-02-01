@@ -16,7 +16,6 @@ import sys
 from pathlib import Path
 
 import pytest
-
 import utils
 
 # isort: off
@@ -95,10 +94,10 @@ def test_get_org_by_tag(data):
             client.organizations.get_organization_by_tag(tag)
         utils.assert_status_code_exception(
             exception=e.value,
-            status_code=503,
+            status_code=404,
             method="GET",
             url=utils.get_url(f"organization/{tag}"),
-            data={"error": "Failed to retrieve organization info"},
+            data={"error": "Not found"},
         )
 
     def assert_get_org_by_tag_fails(client, tag):
@@ -370,10 +369,10 @@ def test_org_delete(data):
             client.organizations.get_organization_by_tag(tag)
         utils.assert_status_code_exception(
             exception=e.value,
-            status_code=503,
+            status_code=404,
             method="GET",
             url=utils.get_url(f"organization/{tag}"),
-            data={"error": "Failed to retrieve organization info"},
+            data={"error": "Not found"},
         )
 
     def assert_org_delete(client, name):
@@ -388,7 +387,7 @@ def test_org_delete(data):
             org.delete()
         utils.assert_status_code_exception(
             exception=e.value,
-            status_code=503,
+            status_code=404,
             method="DELETE",
             url=utils.get_url("organization"),
             data={"error": "Organization not found"},
@@ -468,10 +467,10 @@ def test_org_list_users(data):
             org.list_users()
         utils.assert_status_code_exception(
             exception=e.value,
-            status_code=503,
+            status_code=404,
             method="GET",
             url=utils.get_url(f"organization/{org.tag}"),
-            data={"error": "Failed to retrieve organization info"},
+            data={"error": "Not found"},
         )
 
     def assert_org_list_users_fails(org):
@@ -552,10 +551,10 @@ def test_org_list_projects(data):
             org.list_projects()
         utils.assert_status_code_exception(
             exception=e.value,
-            status_code=503,
+            status_code=404,
             method="GET",
             url=utils.get_url(f"organization/{org.tag}"),
-            data={"error": "Failed to retrieve organization info"},
+            data={"error": "Not found"},
         )
 
     def assert_org_list_projects_fails(org):

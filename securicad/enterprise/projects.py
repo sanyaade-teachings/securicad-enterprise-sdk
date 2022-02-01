@@ -18,6 +18,8 @@ from enum import IntEnum, unique
 from typing import TYPE_CHECKING, Any, BinaryIO, Optional
 
 if TYPE_CHECKING:
+    from securicad.model import Model
+
     from securicad.enterprise.client import Client
     from securicad.enterprise.models import ModelInfo
     from securicad.enterprise.organizations import Organization
@@ -113,32 +115,51 @@ class Project:
         }
         self.client._post("project/user", data)
 
+    ##
+    # Models
+
     def list_models(self) -> list[ModelInfo]:
-        dict_projects = self.client.projects._list_dict_projects()
-        models: list[ModelInfo] = []
-        for dict_project in dict_projects:
-            if dict_project["pid"] == self.pid:
-                for dict_model in dict_project["models"]:
-                    models.append(
-                        self.client.models.get_model_by_mid(self, dict_model["mid"])
-                    )
-                break
-        return models
+        return self.client.models._list_models(project=self)
+
+    def get_model_by_mid(self, mid: str) -> ModelInfo:
+        return self.client.models._get_model_by_mid(project=self, mid=mid)
+
+    def get_model_by_name(self, name: str) -> ModelInfo:
+        return self.client.models._get_model_by_name(project=self, name=name)
 
     def import_models(self, model_infos: list[ModelInfo]) -> None:
         mids = [model_info.mid for model_info in model_infos]
         data: dict[str, Any] = {"pid": self.pid, "mids": mids}
         self.client._post("models/import", data)
 
+    def save_as(self, model: Model, name: str) -> ModelInfo:
+        return self.client.models._save_as(project=self, model=model, name=name)
+
     def upload_scad_model(
         self, filename: str, file_io: BinaryIO, description: Optional[str] = None
     ) -> ModelInfo:
-        return self.client.models.upload_scad_model(
+        return self.client.models._upload_scad_model(
             project=self, filename=filename, file_io=file_io, description=description
         )
 
+    def generate_model(
+        self, parser: str, name: str, files: list[dict[str, Any]]
+    ) -> ModelInfo:
+        return self.client.models._generate_model(
+            project=self, parser=parser, name=name, files=files
+        )
+
+    ##
+    # Scenarios
+
     def list_scenarios(self) -> list[Scenario]:
-        return self.client.scenarios.list_scenarios(self)
+        return self.client.scenarios._list_scenarios(project=self)
+
+    def get_scenario_by_tid(self, tid: str) -> Scenario:
+        return self.client.scenarios._get_scenario_by_tid(project=self, tid=tid)
+
+    def get_scenario_by_name(self, name: str) -> Scenario:
+        return self.client.scenarios._get_scenario_by_name(project=self, name=name)
 
     def create_scenario(
         self,
@@ -146,17 +167,45 @@ class Project:
         name: str,
         description: Optional[str] = None,
         tunings: Optional[list[Tuning]] = None,
+        raw_tunings: Optional[list[dict[str, Any]]] = None,
+        filter_results: bool = True,
     ) -> Scenario:
-        return self.client.scenarios.create_scenario(
+        return self.client.scenarios._create_scenario(
             project=self,
             model_info=model_info,
             name=name,
             description=description,
             tunings=tunings,
+            raw_tunings=raw_tunings,
+            filter_results=filter_results,
         )
 
+    ##
+    # Tunings
+
     def list_tunings(self) -> list[Tuning]:
-        return self.client.tunings.list_tunings(self)
+        return self.client.tunings._list_tunings(project=self)
+
+    def create_tuning(
+        self,
+        tuning_type: str,
+        filterdict: dict[str, Any],
+        op: str = "apply",
+        tags: Optional[dict[str, Any]] = None,
+        ttc: Optional[str] = None,
+        probability: Optional[float] = None,
+        consequence: Optional[int] = None,
+    ) -> Tuning:
+        return self.client.tunings._create_tuning(
+            project=self,
+            tuning_type=tuning_type,
+            filterdict=filterdict,
+            op=op,
+            tags=tags,
+            ttc=ttc,
+            probability=probability,
+            consequence=consequence,
+        )
 
 
 class Projects:

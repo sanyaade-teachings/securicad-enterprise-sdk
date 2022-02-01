@@ -17,7 +17,6 @@ import uuid
 from pathlib import Path
 
 import pytest
-
 import utils
 
 # isort: off
@@ -26,61 +25,59 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 from securicad.enterprise.exceptions import StatusCodeException
 
 # isort: on
-def test_list_create_scenario(data, client, project, model_info):
-    assert client.scenarios.list_scenarios(project) == []
+def test_list_create_scenario(project, model_info):
+    assert project.list_scenarios() == []
     name = str(uuid.uuid4())
     description = str(uuid.uuid4())
-    scenario = client.scenarios.create_scenario(
-        project=project,
+    scenario = project.create_scenario(
         name=name,
         model_info=model_info,
         description=description,
         tunings=[],
     )
-    fetched = client.scenarios.list_scenarios(project)
+    fetched = project.list_scenarios()
     assert len(fetched) == 1, fetched
     fetched_scenario = fetched[0]
+    assert scenario.name == name
+    assert scenario.description == description
     assert fetched_scenario.name == name
     assert fetched_scenario.description == description
 
 
-def test_get_scenario_by_tid(data, client, project, model_info):
+def test_get_scenario_by_tid(project, model_info):
     name = str(uuid.uuid4())
     description = str(uuid.uuid4())
-    scenario = client.scenarios.create_scenario(
-        project=project,
+    scenario = project.create_scenario(
         name=name,
         model_info=model_info,
         description=description,
         tunings=[],
     )
-    fetched = client.scenarios.get_scenario_by_tid(project=project, tid=scenario.tid)
+    fetched = project.get_scenario_by_tid(tid=scenario.tid)
     assert scenario.tid == fetched.tid
     assert fetched.name == name
     assert fetched.description == description
 
 
-def test_get_scenario_by_name(data, client, project, model_info):
+def test_get_scenario_by_name(project, model_info):
     name = str(uuid.uuid4())
     description = str(uuid.uuid4())
-    scenario = client.scenarios.create_scenario(
-        project=project,
+    scenario = project.create_scenario(
         name=name,
         model_info=model_info,
         description=description,
         tunings=[],
     )
-    fetched = client.scenarios.get_scenario_by_name(project=project, name=name)
+    fetched = project.get_scenario_by_name(name=name)
     assert scenario.tid == fetched.tid
     assert fetched.name == name
     assert fetched.description == description
 
 
-def test_scenario_update(data, client, project, model_info):
+def test_scenario_update(project, model_info):
     name = str(uuid.uuid4())
     description = str(uuid.uuid4())
-    scenario = client.scenarios.create_scenario(
-        project=project,
+    scenario = project.create_scenario(
         name=name,
         model_info=model_info,
         description=description,
@@ -89,27 +86,26 @@ def test_scenario_update(data, client, project, model_info):
     new_name = str(uuid.uuid4())
     new_description = str(uuid.uuid4())
     scenario.update(name=new_name, description=new_description)
-    fetched = client.scenarios.get_scenario_by_name(project=project, name=new_name)
+    fetched = project.get_scenario_by_name(name=new_name)
     assert scenario.tid == fetched.tid
     assert fetched.name == new_name
     assert fetched.description == new_description
 
 
-def test_delete_scenario(data, client, project, model_info):
-    assert client.scenarios.list_scenarios(project) == []
+def test_delete_scenario(project, model_info):
+    assert project.list_scenarios() == []
     name = str(uuid.uuid4())
     description = str(uuid.uuid4())
-    scenario = client.scenarios.create_scenario(
-        project=project,
+    scenario = project.create_scenario(
         name=name,
         model_info=model_info,
         description=description,
         tunings=[],
     )
-    fetched = client.scenarios.list_scenarios(project)
+    fetched = project.list_scenarios()
     fetched_scenario = fetched[0]
     scenario.delete()
-    assert client.scenarios.list_scenarios(project) == []
+    assert project.list_scenarios() == []
     with pytest.raises(StatusCodeException) as ex:
         fetched_scenario.delete()
     utils.assert_status_code_exception(
@@ -121,12 +117,11 @@ def test_delete_scenario(data, client, project, model_info):
     )
 
 
-def test_scenario_list_simulations(data, client, project, model_info):
-    assert client.scenarios.list_scenarios(project) == []
+def test_scenario_list_simulations(project, model_info):
+    assert project.list_scenarios() == []
     name = str(uuid.uuid4())
     description = str(uuid.uuid4())
-    scenario = client.scenarios.create_scenario(
-        project=project,
+    scenario = project.create_scenario(
         name=name,
         model_info=model_info,
         description=description,

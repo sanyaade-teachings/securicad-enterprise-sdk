@@ -16,6 +16,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Optional
 
+from securicad.enterprise.deprecation import deprecated
+
 if TYPE_CHECKING:
     from securicad.enterprise.client import Client
     from securicad.enterprise.projects import Project
@@ -85,7 +87,11 @@ class Tunings:
     def __init__(self, client: Client) -> None:
         self.client = client
 
+    @deprecated("Use Project.list_tunings()")
     def list_tunings(self, project: Project) -> list[Tuning]:
+        return project.list_tunings()
+
+    def _list_tunings(self, project: Project) -> list[Tuning]:
         dict_tunings = self.client._post("tunings", {"pid": project.pid})
         retr: list[Tuning] = []
         for tuning_id, dict_tuning in dict_tunings["configs"].items():
@@ -98,7 +104,29 @@ class Tunings:
             )
         return retr
 
+    @deprecated("Use Project.create_tuning()")
     def create_tuning(
+        self,
+        project: Project,
+        tuning_type: str,
+        filterdict: dict[str, Any],
+        op: str = "apply",
+        tags: Optional[dict[str, Any]] = None,
+        ttc: Optional[str] = None,
+        probability: Optional[float] = None,
+        consequence: Optional[int] = None,
+    ) -> Tuning:
+        return project.create_tuning(
+            tuning_type=tuning_type,
+            filterdict=filterdict,
+            op=op,
+            tags=tags,
+            ttc=ttc,
+            probability=probability,
+            consequence=consequence,
+        )
+
+    def _create_tuning(
         self,
         project: Project,
         tuning_type: str,

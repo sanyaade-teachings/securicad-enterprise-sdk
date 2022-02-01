@@ -20,6 +20,8 @@ from typing import TYPE_CHECKING, Any, BinaryIO, Optional
 
 from securicad.model import Model, es_serializer
 
+from securicad.enterprise.deprecation import deprecated
+
 if TYPE_CHECKING:
     from securicad.enterprise.client import Client
     from securicad.enterprise.projects import Project
@@ -162,7 +164,7 @@ class Models:
         model_data = self.client._post("modeldata", {"pid": pid, "mid": mid})
         return model_data["threshold"], model_data["samples"], model_data["metadata"]
 
-    def list_models(self, project: Project) -> list[ModelInfo]:
+    def _list_models(self, project: Project) -> list[ModelInfo]:
         dict_models = self._list_dict_models(project.pid)
         models: list[ModelInfo] = []
         for dict_model in dict_models:
@@ -171,14 +173,22 @@ class Models:
             )
         return models
 
-    def get_model_by_mid(self, project: Project, mid: str) -> ModelInfo:
+    @deprecated("Use Project.list_models()")
+    def list_models(self, project: Project) -> list[ModelInfo]:
+        return project.list_models()
+
+    def _get_model_by_mid(self, project: Project, mid: str) -> ModelInfo:
         dict_models = self._list_dict_models(project.pid)
         for dict_model in dict_models:
             if dict_model["mid"] == mid:
                 return ModelInfo.from_dict(client=self.client, dict_model=dict_model)
         raise ValueError(f"Invalid model {mid}")
 
-    def get_model_by_name(self, project: Project, name: str) -> ModelInfo:
+    @deprecated("Use Project.get_model_by_mid()")
+    def get_model_by_mid(self, project: Project, mid: str) -> ModelInfo:
+        return project.get_model_by_mid(mid=mid)
+
+    def _get_model_by_name(self, project: Project, name: str) -> ModelInfo:
         dict_models = self._list_dict_models(project.pid)
         for dict_model in dict_models:
             if dict_model["name"] == name:
@@ -188,14 +198,22 @@ class Models:
                 return ModelInfo.from_dict(client=self.client, dict_model=dict_model)
         raise ValueError(f"Invalid model {name}")
 
-    def save_as(self, project: Project, model: Model, name: str) -> ModelInfo:
+    @deprecated("Use Project.get_model_by_name()")
+    def get_model_by_name(self, project: Project, name: str) -> ModelInfo:
+        return project.get_model_by_name(name=name)
+
+    def _save_as(self, project: Project, model: Model, name: str) -> ModelInfo:
         dict_model = es_serializer.serialize_model(model)
         dict_model["name"] = f"{name}.sCAD"
         data: dict[str, Any] = {"pid": project.pid, "model": dict_model}
         dict_model = self.client._post("savemodelas", data)
         return self._wait_for_model_validation(project.pid, dict_model["mid"])
 
-    def upload_scad_model(
+    @deprecated("Use Project.save_as()")
+    def save_as(self, project: Project, model: Model, name: str) -> ModelInfo:
+        return project.save_as(model=model, name=name)
+
+    def _upload_scad_model(
         self,
         project: Project,
         filename: str,
@@ -230,7 +248,19 @@ class Models:
         dict_model = self.client._put("models", data)[0]
         return self._wait_for_model_validation(project.pid, dict_model["mid"])
 
-    def generate_model(
+    @deprecated("Use Project.upload_scad_model()")
+    def upload_scad_model(
+        self,
+        project: Project,
+        filename: str,
+        file_io: BinaryIO,
+        description: Optional[str] = None,
+    ) -> ModelInfo:
+        return project.upload_scad_model(
+            filename=filename, file_io=file_io, description=description
+        )
+
+    def _generate_model(
         self, project: Project, parser: str, name: str, files: list[dict[str, Any]]
     ) -> ModelInfo:
         """Generates a model with a parser.
@@ -276,3 +306,9 @@ class Models:
         data: dict[str, Any] = {"parser": parser, "name": name, "files": get_files()}
         dict_model = self.client._post(f"projects/{project.pid}/multiparser", data)
         return self._wait_for_model_validation(project.pid, dict_model["mid"])
+
+    @deprecated("Use Project.generate_model()")
+    def generate_model(
+        self, project: Project, parser: str, name: str, files: list[dict[str, Any]]
+    ) -> ModelInfo:
+        return project.generate_model(parser=parser, name=name, files=files)

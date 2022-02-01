@@ -34,8 +34,8 @@ client = enterprise.client(
 project = client.projects.get_project_by_name("My project")
 
 # Generate securiCAD model from AWS data
-model_info = client.parsers.generate_aws_model(
-    project, name="My model", cli_files=[aws_data]
+model_info = client.util.generate_aws_model(
+    project=project, name="My model", cli_files=[aws_data]
 )
 model = model_info.get_model()
 
@@ -50,10 +50,8 @@ for obj in model.objects(asset_type="S3Bucket"):
 model_info.save(model)
 
 # Start a new simulation in a new scenario
-scenario = client.scenarios.create_scenario(project, model_info, name="My scenario")
-simulation = client.simulations.get_simulation_by_name(
-    scenario, name="Initial simulation"
-)
+scenario = project.create_scenario(model_info, name="My scenario")
+simulation = scenario.get_simulation_by_name(name="Initial simulation")
 
 # Poll for results and return them when simulation is done
 results = simulation.get_results()

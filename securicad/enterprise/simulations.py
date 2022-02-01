@@ -20,6 +20,8 @@ from urllib.parse import urljoin
 
 from securicad.model import es_serializer
 
+from securicad.enterprise.deprecation import deprecated
+
 if TYPE_CHECKING:
     from securicad.model import Model
 
@@ -138,14 +140,32 @@ class Simulations:
         ]
         return dict_simulation
 
+    def _list_simulations(self, scenario: Scenario) -> list[Simulation]:
+        dict_scenario = self.client.scenarios._get_dict_scenario_by_tid(
+            scenario.pid, scenario.tid
+        )
+        simulations: list[Simulation] = []
+        for dict_simulation in dict_scenario["results"].values():
+            simulations.append(
+                Simulation.from_dict(
+                    client=self.client, dict_simulation=dict_simulation
+                )
+            )
+        return simulations
+
+    @deprecated("Use Scenario.list_simulations()")
     def list_simulations(self, scenario: Scenario) -> list[Simulation]:
         return scenario.list_simulations()
 
-    def get_simulation_by_simid(self, scenario: Scenario, simid: str) -> Simulation:
+    def _get_simulation_by_simid(self, scenario: Scenario, simid: str) -> Simulation:
         dict_simulation = self._get_dict_simulation_by_simid(scenario.pid, simid)
         return Simulation.from_dict(client=self.client, dict_simulation=dict_simulation)
 
-    def get_simulation_by_name(self, scenario: Scenario, name: str) -> Simulation:
+    @deprecated("Use Scenario.get_simulation_by_simid()")
+    def get_simulation_by_simid(self, scenario: Scenario, simid: str) -> Simulation:
+        return scenario.get_simulation_by_simid(simid=simid)
+
+    def _get_simulation_by_name(self, scenario: Scenario, name: str) -> Simulation:
         simulations = scenario.list_simulations()
         for simulation in simulations:
             if simulation.name == name:
@@ -155,7 +175,11 @@ class Simulations:
                 return simulation
         raise ValueError(f"Invalid simulation {name}")
 
-    def create_simulation(
+    @deprecated("Use Scenario.get_simulation_by_name()")
+    def get_simulation_by_name(self, scenario: Scenario, name: str) -> Simulation:
+        return scenario.get_simulation_by_name(name=name)
+
+    def _create_simulation(
         self,
         scenario: Scenario,
         name: Optional[str] = None,
@@ -178,4 +202,22 @@ class Simulations:
         if raw_tunings is not None:
             data["tunings"] = raw_tunings
         response = self.client._put("simulation", data)
-        return self.get_simulation_by_simid(scenario, response["simid"])
+        return self._get_simulation_by_simid(scenario, response["simid"])
+
+    @deprecated("Use Scenario.create_simulation()")
+    def create_simulation(
+        self,
+        scenario: Scenario,
+        name: Optional[str] = None,
+        model: Optional[Model] = None,
+        tunings: Optional[list[Tuning]] = None,
+        raw_tunings: Optional[list[dict[str, Any]]] = None,
+        filter_results: bool = True,
+    ) -> Simulation:
+        return scenario.create_simulation(
+            name=name,
+            model=model,
+            tunings=tunings,
+            raw_tunings=raw_tunings,
+            filter_results=filter_results,
+        )

@@ -238,8 +238,8 @@ def model_info(data, project, client):
     name = "aws.sCAD"
     model_path = Path(__file__).with_name(name)
     with model_path.open(mode="rb") as reader:
-        model_info = client.models.upload_scad_model(
-            project, filename=name, file_io=reader, description=""
+        model_info = project.upload_scad_model(
+            filename=name, file_io=reader, description=""
         )
         yield model_info
 

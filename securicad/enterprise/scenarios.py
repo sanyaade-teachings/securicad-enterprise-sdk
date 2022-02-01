@@ -16,9 +16,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Optional
 
+from securicad.enterprise.deprecation import deprecated
 from securicad.enterprise.simulations import Simulation
 
 if TYPE_CHECKING:
+    from securicad.model import Model
+
     from securicad.enterprise.client import Client
     from securicad.enterprise.models import ModelInfo
     from securicad.enterprise.projects import Project
@@ -63,17 +66,32 @@ class Scenario:
         self.client._delete("scenarios", data)
 
     def list_simulations(self) -> list[Simulation]:
-        dict_scenario = self.client.scenarios._get_dict_scenario_by_tid(
-            self.pid, self.tid
+        return self.client.simulations._list_simulations(scenario=self)
+
+    def get_simulation_by_simid(self, simid: str) -> Simulation:
+        return self.client.simulations._get_simulation_by_simid(
+            scenario=self, simid=simid
         )
-        simulations: list[Simulation] = []
-        for dict_simulation in dict_scenario["results"].values():
-            simulations.append(
-                Simulation.from_dict(
-                    client=self.client, dict_simulation=dict_simulation
-                )
-            )
-        return simulations
+
+    def get_simulation_by_name(self, name: str) -> Simulation:
+        return self.client.simulations._get_simulation_by_name(scenario=self, name=name)
+
+    def create_simulation(
+        self,
+        name: Optional[str] = None,
+        model: Optional[Model] = None,
+        tunings: Optional[list[Tuning]] = None,
+        raw_tunings: Optional[list[dict[str, Any]]] = None,
+        filter_results: bool = True,
+    ) -> Simulation:
+        return self.client.simulations._create_simulation(
+            scenario=self,
+            name=name,
+            model=model,
+            tunings=tunings,
+            raw_tunings=raw_tunings,
+            filter_results=filter_results,
+        )
 
 
 class Scenarios:
@@ -91,7 +109,11 @@ class Scenarios:
         dict_scenario: dict[str, Any] = self.client._post("scenario/data", data)
         return dict_scenario
 
+    @deprecated("Use Project.list_scenarios()")
     def list_scenarios(self, project: Project) -> list[Scenario]:
+        return project.list_scenarios()
+
+    def _list_scenarios(self, project: Project) -> list[Scenario]:
         dict_scenarios = self._list_dict_scenarios(project.pid)
         scenarios: list[Scenario] = []
         for dict_scenario in dict_scenarios.values():
@@ -100,12 +122,20 @@ class Scenarios:
             )
         return scenarios
 
+    @deprecated("Use Project.get_scenario_by_tid()")
     def get_scenario_by_tid(self, project: Project, tid: str) -> Scenario:
+        return project.get_scenario_by_tid(tid=tid)
+
+    def _get_scenario_by_tid(self, project: Project, tid: str) -> Scenario:
         dict_scenario = self._get_dict_scenario_by_tid(project.pid, tid)
         return Scenario.from_dict(client=self.client, dict_scenario=dict_scenario)
 
+    @deprecated("Use Project.get_scenario_by_name()")
     def get_scenario_by_name(self, project: Project, name: str) -> Scenario:
-        scenarios = self.list_scenarios(project)
+        return project.get_scenario_by_name(name=name)
+
+    def _get_scenario_by_name(self, project: Project, name: str) -> Scenario:
+        scenarios = project.list_scenarios()
         for scenario in scenarios:
             if scenario.name == name:
                 return scenario
@@ -114,7 +144,27 @@ class Scenarios:
                 return scenario
         raise ValueError(f"Invalid scenario {name}")
 
+    @deprecated("Use Project.create_scenario()")
     def create_scenario(
+        self,
+        project: Project,
+        model_info: ModelInfo,
+        name: str,
+        description: Optional[str] = None,
+        tunings: Optional[list[Tuning]] = None,
+        raw_tunings: Optional[list[dict[str, Any]]] = None,
+        filter_results: bool = True,
+    ) -> Scenario:
+        return project.create_scenario(
+            model_info=model_info,
+            name=name,
+            description=description,
+            tunings=tunings,
+            raw_tunings=raw_tunings,
+            filter_results=filter_results,
+        )
+
+    def _create_scenario(
         self,
         project: Project,
         model_info: ModelInfo,

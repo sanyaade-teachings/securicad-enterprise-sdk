@@ -29,6 +29,7 @@ from securicad.enterprise.scenarios import Scenarios
 from securicad.enterprise.simulations import Simulations
 from securicad.enterprise.tunings import Tunings
 from securicad.enterprise.users import Users
+from securicad.enterprise.util import Util
 
 
 class Client:
@@ -55,6 +56,7 @@ class Client:
         self.simulations: Simulations = Simulations(client=self)
         self.metadata: Metadata = Metadata(client=self)
         self.tunings: Tunings = Tunings(client=self)
+        self.util: Util = Util(client=self)
 
         if token:
             self._set_access_token(token)
