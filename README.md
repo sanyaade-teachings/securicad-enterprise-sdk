@@ -723,6 +723,6 @@ model = client.models.get_model_by_name(project=p, name="doesnexist")
 
 ## License
 
-Copyright © 2020-2021 [Foreseeti AB](https://foreseeti.com)
+Copyright © 2020-2022 [Foreseeti AB](https://foreseeti.com)
 
 Licensed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0)
