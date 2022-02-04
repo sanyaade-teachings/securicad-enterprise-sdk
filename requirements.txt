@@ -30,7 +30,7 @@ requests==2.27.1
     # via securicad-enterprise (setup.cfg)
 restrictedpython==5.2
     # via pyecore
-securicad-model==1.0.0
+securicad-model==1.0.1
     # via securicad-enterprise (setup.cfg)
 urllib3==1.26.8
     # via requests
