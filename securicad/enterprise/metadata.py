@@ -62,6 +62,7 @@ class Metadata:
                         "name": attackstep["name"],
                         "description": attackstep["description"],
                         "risktype": parse_risktype(attackstep),
+                        "metaInfo": attackstep.get("metaInfo", {}),
                     }
                 )
             metalist.append(
@@ -69,6 +70,7 @@ class Metadata:
                     "name": asset,
                     "description": data["description"],
                     "attacksteps": attacksteps,
+                    "metaInfo": data.get("metaInfo", {}),
                 }
             )
         return sorted(metalist, key=lambda asset: cast(str, asset["name"]))
