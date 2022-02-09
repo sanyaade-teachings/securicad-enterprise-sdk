@@ -1,0 +1,126 @@
+{
+    "scenarios": [
+        {
+            "name": "Default",
+            "tunings": [
+                {
+                    "tuning_type": "probability",
+                    "op": "apply",
+                    "filterdict": {
+                        "metaconcept": "Account",
+                        "defense": "VirtualMFA"
+                    },
+                    "probability": 0.9
+                },
+                {
+                    "tuning_type": "probability",
+                    "op": "apply",
+                    "filterdict": {
+                        "metaconcept": "Account",
+                        "defense": "HardwareMFA"
+                    },
+                    "probability": 0.9
+                },
+                {
+                    "tuning_type": "consequence",
+                    "op": "apply",
+                    "filterdict": {
+                        "metaconcept": "AKSCluster",
+                        "attackstep": "DeletePools"
+                    },
+                    "consequence": 5
+                },
+                {
+                    "tuning_type": "consequence",
+                    "op": "apply",
+                    "filterdict": {
+                        "metaconcept": "AKSCluster",
+                        "attackstep": "WriteDeployments"
+                    },
+                    "consequence": 7
+                },
+                {
+                    "tuning_type": "consequence",
+                    "op": "apply",
+                    "filterdict": {
+                        "metaconcept": "AKSCluster",
+                        "attackstep": "DeleteVolumes"
+                    },
+                    "consequence": 5
+                },
+                {
+                    "tuning_type": "consequence",
+                    "op": "apply",
+                    "filterdict": {
+                        "metaconcept": "Container",
+                        "attackstep": "HighPrivilegeAccess"
+                    },
+                    "consequence": 8
+                },
+                {
+                    "tuning_type": "consequence",
+                    "op": "apply",
+                    "filterdict": {
+                        "metaconcept": "AKSPod",
+                        "attackstep": "Stop"
+                    },
+                    "consequence": 3
+                },
+                {
+                    "tuning_type": "consequence",
+                    "op": "apply",
+                    "filterdict": {
+                        "metaconcept": "AKSPod",
+                        "attackstep": "Deny"
+                    },
+                    "consequence": 3
+                },
+                {
+                    "tuning_type": "consequence",
+                    "op": "apply",
+                    "filterdict": {
+                        "metaconcept": "LinuxVM",
+                        "attackstep": "HighPrivilegeAccess"
+                    },
+                    "consequence": 10
+                },
+                {
+                    "tuning_type": "consequence",
+                    "op": "apply",
+                    "filterdict": {
+                        "metaconcept": "SQLDatabase",
+                        "attackstep": "ReadData"
+                    },
+                    "consequence": 8
+                },
+                {
+                    "tuning_type": "consequence",
+                    "op": "apply",
+                    "filterdict": {
+                        "metaconcept": "StorageAccount",
+                        "attackstep": "RootAccess"
+                    },
+                    "consequence": 10
+                },
+                {
+                    "tuning_type": "consequence",
+                    "op": "apply",
+                    "filterdict": {
+                        "metaconcept": "Key",
+                        "attackstep": "SignHash"
+                    },
+                    "consequence": 7
+                },
+                {
+                    "tuning_type": "consequence",
+                    "op": "apply",
+                    "filterdict": {
+                        "metaconcept": "FunctionApp",
+                        "attackstep": "EditFunctionAppCode"
+                    },
+                    "consequence": 9
+                }
+            ]
+        }
+    ]
+}

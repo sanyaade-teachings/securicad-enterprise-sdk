@@ -136,3 +136,6 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# Changes made to conf.ini to prevent leaked credentials
+examples/conf.ini

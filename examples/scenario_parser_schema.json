@@ -1,0 +1,168 @@
+{
+    "definitions": {
+        "tag": {
+            "type": "object"
+        },
+        "tuning": {
+            "type": "object",
+            "properties": {
+                "tuning_type": {
+                    "type": "string"
+                },
+                "op": {
+                    "type": "string"
+                },
+                "filterdict": {
+                    "type": "object",
+                    "properties": {
+                        "metaconcept": {
+                            "type": "string"
+                        },
+                        "defense": {
+                            "type": "string"
+                        },
+                        "attackstep": {
+                            "type": "string"
+                        },
+                        "object_name": {
+                            "type": "string"
+                        },
+                        "tags": {
+                            "$ref": "#/definitions/tag"
+                        }
+                    },
+                    "oneOf": [
+                        {
+                            "required": [
+                                "metaconcept",
+                                "attackstep"
+                            ],
+                            "not": {
+                                "required": [
+                                    "defense"
+                                ]
+                            }
+                        },
+                        {
+                            "required": [
+                                "metaconcept",
+                                "defense"
+                            ],
+                            "not": {
+                                "required": [
+                                    "attackstep"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "probability": {
+                    "type": "number"
+                },
+                "consequence": {
+                    "type": "integer"
+                },
+                "ttc": {
+                    "type": "string"
+                },
+                "tags": {
+                    "$ref": "#/definitions/tag"
+                }
+            },
+            "oneOf": [
+                {
+                    "required": [
+                        "tuning_type",
+                        "op",
+                        "filterdict",
+                        "consequence"
+                    ],
+                    "not": {
+                        "required": [
+                            "probability",
+                            "ttc",
+                            "tags"
+                        ]
+                    }
+                },
+                {
+                    "required": [
+                        "tuning_type",
+                        "op",
+                        "filterdict",
+                        "probability"
+                    ],
+                    "not": {
+                        "required": [
+                            "consequence",
+                            "ttc",
+                            "tags"
+                        ]
+                    }
+                },
+                {
+                    "required": [
+                        "tuning_type",
+                        "op",
+                        "filterdict",
+                        "ttc"
+                    ],
+                    "not": {
+                        "required": [
+                            "consequence",
+                            "probability",
+                            "tags"
+                        ]
+                    }
+                },
+                {
+                    "required": [
+                        "tuning_type",
+                        "op",
+                        "filterdict",
+                        "tags"
+                    ],
+                    "not": {
+                        "required": [
+                            "consequence",
+                            "probability",
+                            "ttc"
+                        ]
+                    }
+                }
+            ],
+            "additionalProperties": false
+        }
+    },
+    "type": "object",
+    "properties": {
+        "scenarios": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "uniqueItems": true,
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "tunings": {
+                        "type": "array",
+                        "items":{
+                            "$ref": "#/definitions/tuning"
+                        },
+                        "uniqueItems": true,
+                        "additionalItems": false
+                    }
+                },
+                "required": [
+                    "name",
+                    "tunings"
+                ]
+            }
+        }
+    },
+    "required": [
+        "scenarios"
+    ],
+    "additionalProperties": false
+}
