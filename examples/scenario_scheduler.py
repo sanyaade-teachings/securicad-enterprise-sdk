@@ -248,7 +248,7 @@ def main() -> None:
         log.error(f"invalid project name {project}")
         sys.exit(e)
 
-    log.info(f"Getting model {model_name}")
+    log.info(f"Getting model {model_name if model_name else mid}")
     model = get_model(model=model_name, project=project_obj, mid=mid)
     if not model:
         log.error(f"Couldn't find a model with name {model_name} in project {project}")
@@ -257,7 +257,6 @@ def main() -> None:
     apply_cia_tunings(es_client=es_client, project=project_obj, model_info=model)
     if args.tunings:
         apply_tunings_file(
-            es_client=es_client,
             tunings_file=args.tunings,
             project=project_obj,
             model_info=model,
