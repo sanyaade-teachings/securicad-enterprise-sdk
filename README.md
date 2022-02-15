@@ -121,8 +121,8 @@ model_info.save(model)
 
 # Start a new simulation in a new scenario
 scenario = client.scenarios.create_scenario(project, model_info, name="My scenario")
-simulation = client.simulations.get_simulation_by_name(
-    scenario, name="Initial simulation"
+simulation = scenario.get_simulation_by_name(
+    name="Initial simulation"
 )
 
 # Poll for results and return them when simulation is done
@@ -223,8 +223,7 @@ More details in the various type descriptions.
 To add an attack step to the attacker's entrypoints, you can create a tuning like this:
 
 ```python
-tuning = client.tunings.create_tuning(
-    project,
+tuning = project.create_tuning(
     tuning_type="attacker",
     filterdict={"attackstep": "HighPrivilegeAccess", "object_name": "Prod srv 1"},
 )
@@ -244,7 +243,7 @@ The filter accepts these arguments:
 To set the Time-To-Compromise distribution function of a specific attack step of a specific object, you can create a tuning like this:
 
 ```python
-tuning = client.tunings.create_tuning(
+tuning = project.create_tuning(
     project,
     tuning_type="ttc",
     filterdict={"object_name": "Prod srv 1", "attackstep": "HighPrivilegeAccess"},
@@ -255,7 +254,7 @@ tuning = client.tunings.create_tuning(
 or all objects of a class
 
 ```python
-tuning = client.tunings.create_tuning(
+tuning = project.create_tuning(
     project,
     tuning_type="ttc",
     filterdict={"metaconcept": "EC2Instance", "attackstep": "HighPrivilegeAccess"},
@@ -279,7 +278,7 @@ The tuning takes these arguments:
 To enable all defenses in the model you can create a tuning like this:
 
 ```python
-tuning = client.tunings.create_tuning(
+tuning = project.create_tuning(
     project,
     tuning_type="probability",
     filterdict={},
@@ -290,7 +289,7 @@ tuning = client.tunings.create_tuning(
 Or to set patched on all `EC2Instance` objects:
 
 ```python
-tuning = client.tunings.create_tuning(
+tuning = project.create_tuning(
     project,
     tuning_type="probability",
     filterdict={"metaconcept": "EC2Instance", "defense": "Patched"},
@@ -314,7 +313,7 @@ The tuning takes these arguments:
 To set the consequence of any EC2Instance object in prod being reached:
 
 ```python
-tuning = client.tunings.create_tuning(
+tuning = project.create_tuning(
     project,
     tuning_type="consequence",
     filterdict={"metaconcept": "EC2Instance", "defense": "Patched", "tags": {"env": "prod"}},
@@ -338,7 +337,7 @@ The tuning takes these arguments:
 To add tags to all `EC2Instance` objects:
 
 ```python
-tuning = client.tunings.create_tuning(
+tuning = project.create_tuning(
     project,
     tuning_type="tag",
     filterdict={"metaconcept": "EC2Instance"},
@@ -355,6 +354,19 @@ The filter will accept these arguments:
 The tuning takes these arguments:
 
 - `tags`: A dictionary of zero or more key-value pairs.
+
+### `Scenario`: Applying the tunings to a simulation
+
+The tunings created using ```project.create_tuning(...)``` are available in your project at this point, but they have to be actively applied for each simulation to take effect. Assuming you store the individual `tuning` objects in a list `tunings`, you can apply and run them on a simulation by:
+
+```python
+scenario.create_simulation(
+    name="MyTunings",
+    model=model,
+    tunings=tunings
+)
+```
+You can use the [scenario_scheduler.py](https://github.com/foreseeti/securicad-enterprise-sdk/blob/master/examples/scenario_scheduler.py) as is, or as a base for your own tooling to create and apply tunings to a model. It can take a JSON file as input containing unique scenarios, each holding a set of tunings. See our [template](https://github.com/foreseeti/securicad-enterprise-sdk/blob/master/examples/azure/default_tunings.json) for reference. Please read more about the tool [here](https://docs.foreseeti.com/docs/creating-a-model#start-simulating)
 
 ## Vulnerability data and vulnerabilities
 
