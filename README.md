@@ -63,7 +63,9 @@ To collect the AWS data, we use the [securiCAD AWS Collector](https://github.com
 <!-- embedme example.py -->
 
 ```python
-from securicad import aws_collector, enterprise
+import securicad.aws_collector as aws_collector
+
+import securicad.enterprise as enterprise
 
 # Fetch AWS data
 config_data = aws_collector.get_config_data(
@@ -97,33 +99,24 @@ client = enterprise.client(
 project = client.projects.get_project_by_name("My project")
 
 # Generate securiCAD model from AWS data
-model_info = client.parsers.generate_aws_model(
-    project, name="My model", cli_files=[aws_data]
+model_info = client.util.generate_aws_model(
+    project=project, name="My model", cli_files=[aws_data]
 )
 model = model_info.get_model()
 
 # securiCAD metadata with all assets and attacksteps
 metadata = client.metadata.get_metadata()
 
-high_value_assets = [
-    {
-        "metaconcept": "S3Bucket",
-        "attackstep": "ReadObject",
-        "consequence": 7,
-    }
-]
-
 # Set high value assets in securiCAD model
-model.set_high_value_assets(high_value_assets=high_value_assets)
+for obj in model.objects(asset_type="S3Bucket"):
+    obj.attack_step("readObject").meta["consequence"] = 7
 
 # Save changes to model in project
 model_info.save(model)
 
 # Start a new simulation in a new scenario
-scenario = client.scenarios.create_scenario(project, model_info, name="My scenario")
-simulation = scenario.get_simulation_by_name(
-    name="Initial simulation"
-)
+scenario = project.create_scenario(model_info, name="My scenario")
+simulation = scenario.get_simulation_by_name(name="Initial simulation")
 
 # Poll for results and return them when simulation is done
 results = simulation.get_results()
@@ -581,7 +574,8 @@ The `ttcX` values is the TTC for each procentile and the `values` list contains 
                 4.1,
                 5.55
             ],
-            "attackstep_id": "1432.ReadObject"
+            "attackstep_id": "1432.ReadObject",
+            "attack_exposure": 0.9776900000000001
         },
     ],
 },
@@ -710,6 +704,94 @@ To use the URL externally, prepend your domain name to the url e.g., `https://my
     "report_url": [
         "/project/749432228616411/scenario/265400114917031/report/138174299751445"
     ]
+}
+```
+
+### Critical Path
+
+Critical path data can be obtained with `Simulation.get_critical_paths()`.
+Given the high value asset `820.ReadObject`, the format of the critical path data is:
+
+```json
+{
+    "820.ReadObject": {
+        "trace": [...],
+        "nodes": [...],
+        "links": [...],
+        "target": {...}
+    },
+}
+```
+
+#### `trace`
+
+```json
+{
+    "exported_id": 573,
+    "metaconcept": "IdentityBasedAllowStatement",
+    "attackstep": "Satisfy",
+    "name": "AmazonEC2ContainerServiceforEC2Role [Allow]",
+    "traces": []
+},
+```
+
+#### `nodes`
+
+```json
+"nodes": [
+    {
+        "id": "(1214).PerformAction",
+        "isDefense": false,
+        "isMax": false,
+        "class": "LambdaUpdateFunctionCode",
+        "ttc": 26.673615535090462,
+        "frequency": 2,
+        "name": "(1214) LambdaUpdateFunctionCode",
+        "attackstep": "PerformAction",
+        "groups": [
+            0,
+            1
+        ],
+        "eid": "1214",
+        "index": 0,
+        "tag": null
+    },
+],
+```
+
+#### `links`
+
+```json
+"links": [
+    {
+        "source": 6,
+        "target": 24,
+        "groups": [
+            0,
+            1
+        ],
+        "frequency": 9.0,
+        "toString": "(821).AuthenticatedRead->(820).ReadObject",
+        "traces": []
+    },
+],
+```
+
+#### `target`
+
+```json
+"target": {
+    "id": "(820).ReadObject",
+    "isDefense": false,
+    "isMax": false,
+    "class": "S3Bucket",
+    "ttc": 0,
+    "frequency": 0,
+    "name": "(820) demo-hl3-schedule",
+    "attackstep": "ReadObject",
+    "groups": [],
+    "eid": "820",
+    "index": 0
 }
 ```
 

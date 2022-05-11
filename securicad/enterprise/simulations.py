@@ -21,6 +21,7 @@ from urllib.parse import urljoin
 from securicad.model import es_serializer
 
 from securicad.enterprise.deprecation import deprecated
+from securicad.enterprise.exceptions import StatusCodeException
 
 if TYPE_CHECKING:
     from securicad.model import Model
@@ -123,9 +124,17 @@ class Simulation:
 
         attackpaths: dict[str, dict[str, Any]] = {}
         for hva in hvas:
-            data = {"simid": self.simid, "attackstep": hva}
-            resp = self.client._post("simulation/attackpath", data)
-            attackpaths[hva] = resp["data"]
+            try:
+                data = {"simid": self.simid, "attackstep": hva}
+                resp = self.client._post("simulation/attackpath", data)
+                attackpaths[hva] = resp["data"]
+            except StatusCodeException as ex:
+                if (
+                    ex.status_code != 500
+                    or ex.json is None
+                    or ex.json.get("error") != "no attackpath found"
+                ):
+                    raise
         return attackpaths
 
 
